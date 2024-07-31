@@ -79,6 +79,18 @@ cite_options(citation_format = "pandoc")
 
 Use intro of paper in Ecol Modelling on P2CR and that in Biometrics on splines. See also transcript of my talk at ISEC on lasso. 
 
+Question: on prend occupancy ou pas, sachant qu'il y a deux papiers qui font de l'occupancy pénalisée mais qui ne font pas de la sélection de covariables - je dis oui ;-)
+
+https://esajournals.onlinelibrary.wiley.com/doi/full/10.1890/09-1073.1
+
+https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12368
+
+Si je me lance avec occupancy, voir en quoi la pénalisation du lasso diffère des 2 proposées par hutchinson et de celle proposée par moreno et lele. 
+
+Penalised likelihood methods for occupancy have also been developed to help overcome the numerical instability of the maximum likelihood estimators (Moreno and Lele, 2010, Hutchinson et al., 2015b). These may be fitted using the occuPEN and occuPEN_CV functions in unmarked package.
+
+Voir aussi https://www.biorxiv.org/content/10.1101/052266v8 pour app ML to capture-recapture.
+
 It's been 2 years since I got in touch with Rachel, Byron and Eleni. I feel guilty for not making progress on this project. My suggestion to make sure something comes out of these reflexions is to keep the analyses simple, straight to the point of illustrating the use of Lasso for covariate selection. The good news is that I have a PhD student who should start (if we get funding) working on the topic before the end of the year, co-supervised by Ian and I, and she'll have plenty of oppotunities to explore further the issue.
 
 Below, I have 2 case studies, both have been pubished already to illustre covariate selection issues in capture-recapture and occupancy models, which makes their descrition easy, and the motivation for their use obvious. 
