@@ -1,0 +1,411 @@
+---
+title: "Covariates selection in occupancy and capture-recapture models using the Lasso"
+author: "Olivier Gimenez & Ian Renner"
+date: "March 2020"
+output: 
+  html_document:
+    toc: TRUE
+    toc_depth: 2
+    number_sections: true
+    theme: united
+    highlight: tango
+    df_print: paged
+#    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, message = FALSE, warning = FALSE, dpi = 600, fig.height=6, fig.width = 1.777777*6)
+#library(tidyverse)
+#library(lubridate)
+#library(scales)
+#library(ggrepel)
+#library(viridis)
+#library(vegan)
+#library(sf)
+#theme_set(theme_light())
+```
+
+# Introduction
+
+It's been 2 years since I got in touch with Rachel, Byron and Eleni. I feel guilty for not making progress on this project. My suggestion to make sure something comes out of these reflexions is to keep the analyses simple, straight to the point of illustrating the use of Lasso for covariate selection. The good news is that I have a PhD student who should start (if we get funding) working on the topic before the end of the year, co-supervised by Ian and I, and she'll have plenty of oppotunities to explore further the issue.
+
+Below, I have 2 case studies, both have been pubished already to illustre covariate selection issues in capture-recapture and occupancy models, which makes their descrition easy, and the motivation for their use obvious. 
+
+My idea is to submit a short paper in the [Emergent Technologies section](https://esajournals.onlinelibrary.wiley.com/hub/journal/21508925/resources/author-guidelines-ECS2#Types_of_Contributions) of the journal Ecosphere. 
+
+The Lasso we implement below is similar to the description you may find in [Renner et al. (2019). Combining multiple data sources in species distribution models while accounting for spatial dependence and overfitting with combined penalized likelihood maximization. Methods in Ecology and Evolution 10: 2118-212](https://www.biorxiv.org/content/10.1101/615583v3). For now, I'm using the adaptive Lasso only, but I plan to illustrate the simple Lasso as well. 
+
+# Code we will need
+
+```{r}
+# reciprocal logit function
+expit <- function(x){
+  exp(x)/(1+exp(x))
+}
+
+# use logarithms to vectorize row-wise products
+rowProds <- function(x, na.rm = FALSE){
+  exp(rowSums(log(x), na.rm = na.rm))
+}
+
+# visualize lasso paths
+vis.path = function(path, lasso, main = main, bic = NULL){
+  par(cex = 1.4)
+	max.y = max(path)
+	min.y = min(path)
+	plot(lasso, path[1,], 
+	     type = "l", 
+	     log = "x", 
+	     xlab = "Lasso penalty", 
+	     ylab = "Coefficient values", 
+	     ylim = c(min.y, max.y), 
+	     main = main)
+	for (v in 2:dim(path)[1]){
+	  points(lasso, path[v,], type = "l")
+	}
+	if (is.null(bic) == FALSE){
+	  abline(v = bic, lwd = 3, col = "red")
+		legend("bottomright", legend = "BIC", lwd = 3, col = "red")
+	}
+}
+```
+
+# Capture-recapture models
+
+Lasso covariates selection for a capture-recapture model, w/ white storks as case study, see e.g. [Gimenez and Barbraud (2017). Dealing with many correlated covariates in capture–recapture models. Population Ecology. 59: 287-291](https://oliviergimenez.github.io/pubs/Gimenez&Barbraud2017PopEcol.pdf). 
+
+Let us write the capture-recapture model deviance w/ lasso regularisation. It uses the HMM formulation, we could go for the m-array formulation to increase speed as we don't have individual covariates: 
+```{r}
+wtlasso_devcapture <- function(b,data,X,eff,e,garb,nh,km1,lasso=0,no.shrink=NULL){
+  # data encounter histories, eff counts
+  # e vector of dates of first captures
+  # garb vector of initial states 
+  # km1 nb of recapture occasions (nb of capture occ - 1)
+  # nh nb ind
+  
+  bphi <- b[1:ncol(X)]
+  bp <- b[(ncol(X)+1)]
+  phi <- 1/(1+exp(- as.matrix(X) %*% bphi))
+  p <- 1/(1+exp(-bp))
+  
+  # prob of obs (rows) cond on states (col)
+  B <- array(0,c(2,2,km1)) # allows for time-dep in the parameters
+  for (t in 1:km1){
+    B[,,t] <- matrix(c(1-p,1,p,0),nrow=2,ncol=2,byrow=T)
+  }
+  
+  # first encounter
+  BE <- matrix(c(0,1,1,0),nrow=2,ncol=2,byrow=T) 
+  
+  # prob of states at t+1 given states at t
+  A <- array(0,c(2,2,km1))
+  for (t in 1:km1){
+    A[,,t] <- matrix(c(phi[t], 1 - phi[t],0,1),nrow=2,ncol=2,byrow=T)
+  }
+  
+  # init states
+  PI <- array(0,c(1,2,km1+1))
+  for (t in 1:(km1+1)){
+    PI[,,t] <- c(1,0)
+  }
+  
+  # likelihood
+  l <- 0
+  for (i in 1:nh){ # loop on ind
+    ei <- e[i] # date of first det
+    oe <- garb[i] + 1 # init obs
+    evennt <- data[,i] + 1 # non-det become 1s, det 2s
+    ALPHA <- PI[,,ei]*BE[oe,]
+    for (j in (ei+1):(km1+1)){ # cond on first capture
+      if ((ei+1)>(km1+1)) {break} # avoid reverse indexing
+      ALPHA <- (ALPHA %*% A[,,j-1])*B[evennt[j],,j-1]
+    }
+    l <- l + log(sum(ALPHA))*eff[i] - sum(as.vector(lasso[-no.shrink])*abs(b[-no.shrink]))
+  }
+  -l
+}
+```
+
+Load and format data:
+```{r}
+load('whitestork.RData')
+
+# specify various quantities
+nkp1 <- dim(data)[2]
+nh <- dim(data)[1] # nb of individuals
+k <- nkp1-1 # nb of capture occasions
+km1 <- k-1 
+eff <- data[,nkp1] # counts
+# select ecounter histories only - remove counts
+data <- data[,1:k]
+# compute the date of first capture fc, and state at initial capture init.state
+fc <- NULL
+init.state <- NULL
+for (i in 1:nh){
+temp <- 1:k
+fc <- c(fc,min(temp[data[i,]==1]))
+init.state <- c(init.state,data[i,fc[i]])
+}
+
+# form design matrix for survival (detection is constant)
+X <- cbind(1,cov)
+
+# get names and dimensions
+survParms <- colnames(X)
+nDP <- 1
+nOP <- ncol(X)
+nP <- nDP + nOP
+```
+
+Run full model w/ all covariates to compute weights for the adaptive lasso:
+```{r}
+binit <- rep(0, nP) # init values
+no.shrink <- rep(1,nP) # intercepts are not 'lassoed'
+lasso.vec <- rep(0, length(binit))
+data <- t(data) # transpose data
+fit.lasso <- optim(par = binit, 
+					   fn = wtlasso_devcapture, 
+					   gr = NULL, 
+					   hessian = FALSE, 
+					   data,
+					   X,
+					   eff,
+					   fc,
+					   init.state,
+					   nh,
+					   km1,
+					   lasso = lasso.vec, 
+					   no.shrink = no.shrink, 
+					   method = "BFGS", 
+					   control = list(trace = 0, REPORT = 1, reltol = 1e-12))
+
+# get occupancy and detection estimates, on logit scale
+logitphi <- fit.lasso$par[1:nOP]
+logitdet <- fit.lasso$par[nOP+1]
+
+# compute weights for adaptive lasso
+a.weights <- c(0,1/abs(logitphi[-1]),0) # intercept and logit(p) have 0 weights
+```
+
+Lasso path:
+```{r cache = TRUE}
+maxlamb <- 2
+penalty.min <- 1.e-3
+n.fits <- 50
+penalty <- exp(seq(log(penalty.min), log(maxlamb), length.out = n.fits))
+lassopath <- matrix(NA, ncol(X)+1, n.fits)
+lassolike <- rep(NA, n.fits)
+par.init  <- rep(0, ncol(X)+1)
+#data <- t(data) # transpose data
+no.shrink <- c(1,ncol(X)+1) # intercepts are not 'lassoed'
+for (i in 1:n.fits){
+	lasso.vec <- rep(penalty[i], length(par.init))*a.weights
+	lasso.vec[no.shrink] <- 0
+	binit <- rep(0, ncol(X)+1) # init values
+	fit.lasso <- optim(par = binit, 
+					   fn = wtlasso_devcapture, 
+					   gr = NULL, 
+					   hessian = FALSE, 
+					   data,
+					   X,
+					   eff,
+					   fc,
+					   init.state,
+					   nh,
+					   km1,
+					   lasso = lasso.vec, 
+					   no.shrink = no.shrink, 
+					   method = "BFGS", 
+					   control = list(trace = 0, REPORT = 1, reltol = 1e-12))
+	lassopath[,i] <- fit.lasso$par
+	lassolike[i]  <- fit.lasso$value
+#	cat(paste(i, "\n"))
+#	flush.console()
+}
+```
+
+Get best penalty:
+```{r}
+N <- nh 
+num.v <- apply(abs(lassopath) > 1.e-3, 2, sum) - length(no.shrink)
+BIC <- 2*lassolike + log(N)*num.v
+#BIC <- 2*lassolike + 2*num.v
+# plot BIC as a function of penalty
+plot(penalty, BIC, log = "x", type = "o", xlab = "Lasso Penalty", ylab = "BIC")
+```
+
+```{r}
+# regularization path 
+pen <- penalty[which.min(BIC)] # get 'best' penalisation
+lasso.vec <- rep(pen, length(par.init))
+lasso.vec[no.shrink] <- 0
+vis.path(lassopath[-no.shrink,], penalty, bic = pen, main = "")
+```
+
+```{r}
+# get estimates from model with selected lasso penalisation 
+lasso.occ <- lassopath[,which.min(BIC)]
+# display results
+x <- lasso.occ
+cov.names <- names(X)
+cbind(x[1:ncol(X)],cov.names)
+```
+
+The weather at Kita station is selected, which is confirmed by standard model selection approaches. Nice. 
+
+# Occupancy models
+
+Lasso covariates selection for a single-season occupancy model, w/ bobcats as case study. A bit more complex than the capture-recapture example as covariate selection on detection too. This case study was motivated by a recent paper published in Ecosphere by Dana Morin, check out [Morin et al. 2020. Is your ad hoc model selection strategy affecting your multimodel inference? Ecosphere 11( 1):e02997](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecs2.2997). I'm in touch with Dana and her co-authors, they have agreed on sharing their data, and I think our paper could echo theirs in a nice manner. 
+
+Occupancy model deviance w/ lasso regularisation:
+```{r}
+wtlasso_devoccu <- function(params,y,X,V,lasso=0,no.shrink=NULL){
+  # params = param vector, w/ occupancy and detection in that order
+  # y = detections/non-detections at sites 
+  # X = occupancy design matrix
+  # V = detection design matrix
+  # lasso indicator
+  M <- nrow(X)
+  J <- nrow(V)/M
+  nOP <- ncol(X)
+  nDP <- ncol(V)
+  nP <- nDP + nOP
+  yvec <- as.numeric(t(y))
+  navec <- is.na(yvec)
+  nd <- ifelse(rowSums(y,na.rm=TRUE) == 0, 1, 0) # no det at site i
+  psi <- expit(X %*% params[1 : nOP])
+  pvec <- expit(V %*% params[(nOP + 1) : nP])
+  cp <- (pvec^yvec) * ((1 - pvec)^(1 - yvec))
+  cp[navec] <- 1 # so that NA's don't modify likelihood
+  cpmat <- matrix(cp, M, J, byrow = TRUE) #
+  loglik <- log(rowProds(cpmat) * psi + nd * (1 - psi)) - 
+    sum(as.vector(lasso[-no.shrink])*abs(params[-no.shrink]))
+  -sum(loglik)
+}
+```
+
+Load and format data:
+```{r}
+load('bobcat_presenceformat.RData')
+
+y <- BC.pao$det.data
+J <- ncol(y)
+M <- nrow(y)
+
+# occupancy design matrix, w/ intercept
+X <- as.matrix(data.frame(	
+  int_psi = rep(1,M),
+  d_str = scale(BC.pao$unitcov$DT_STR),
+  str_ha= scale(BC.pao$unitcov$STRCT_HA),
+  urb = scale(BC.pao$unitcov$URB_PER),
+  forest = scale(BC.pao$unitcov$FOR_PER),
+  stream = scale(BC.pao$unitcov$STREAM),
+  agri = scale(BC.pao$unitcov$AGR),
+  grass = scale(BC.pao$unitcov$GRA)))
+  
+# detection design matrix, w/ intercept and a qualitative covariate (year)
+V <- as.matrix(data.frame(
+  int_det = rep(1,J*M),
+  temp = scale(as.numeric(t(matrix(BC.pao$survcov$TMP,ncol=3)))),
+  prec = scale(as.numeric(t(matrix(BC.pao$survcov$PPT,ncol=3)))),
+  scale(cbind(as.numeric(t(matrix(model.matrix(~ -1 + year,BC.pao$survcov)[,2],ncol=3))),
+  as.numeric(t(matrix(model.matrix(~ -1 + year,BC.pao$survcov)[,3],ncol=3))))),  
+  trap = scale(as.numeric(t(matrix(BC.pao$survcov$recapBC,ncol=3))))))
+
+# get names and dimensions
+occParms <- colnames(X)
+detParms <- colnames(V)
+nDP <- ncol(V)
+nOP <- ncol(X)
+nP <- nDP + nOP
+```
+
+Run full model w/ all covariates to compute weights for the adaptive lasso:
+```{r}
+binit <- rep(0, nP) # init values
+no.shrink <- rep(1,nP) # intercepts are not 'lassoed'
+lasso.vec <- rep(0, length(binit))
+fit.lasso <- optim(par = binit, 
+					   fn = wtlasso_devoccu, 
+					   gr = NULL, 
+					   hessian = FALSE, 
+					   y, 
+					   X, 
+					   V, 
+					   lasso = lasso.vec, 
+					   no.shrink = no.shrink, 
+					   method = "BFGS", 
+					   control = list(trace= 0, REPORT = 1, reltol = 1e-12))
+
+# get occupancy and detection estimates, on logit scale
+logitpsi <- fit.lasso$par[1:nOP]
+logitdet <- fit.lasso$par[(nOP+1):nP]
+
+# compute weights for adaptive lasso
+a.weights <- c(0,1/abs(logitpsi[-1]),0,1/abs(logitdet[-1])) # intercepts have 0 weights
+```
+
+Lasso path:
+```{r cache = TRUE}
+maxlamb <- 2
+penalty.min <- 1.e-3
+n.fits <- 50
+penalty <- exp(seq(log(penalty.min), log(maxlamb), length.out = n.fits))
+lassopath <- matrix(NA, nP, n.fits)
+lassolike <- rep(NA, n.fits)
+par.init  <- rep(0, nP)
+no.shrink <- c(1,ncol(X)+1) # intercepts are not 'lassoed'
+for (i in 1:n.fits){
+	lasso.vec <- rep(penalty[i], length(par.init))*a.weights
+	lasso.vec[no.shrink] <- 0
+	binit <- rep(0, nP) # init values
+	fit.lasso <- optim(par = binit, 
+					   fn = wtlasso_devoccu, 
+					   gr = NULL, 
+					   hessian = FALSE, 
+					   y, 
+					   X, 
+					   V, 
+					   lasso = lasso.vec, 
+					   no.shrink = no.shrink, 
+					   method = "BFGS", 
+					   control = list(trace = 0, REPORT = 1, reltol = 1e-12))
+	lassopath[,i] <- fit.lasso$par
+	lassolike[i]  <- fit.lasso$value
+#	cat(paste(i, "\n"))
+#	flush.console()
+}
+```
+
+Get best penalty:
+```{r}
+num.v <- apply(abs(lassopath) > 1.e-3, 2, sum) - length(no.shrink)
+BIC <- 2*lassolike + log(M)*num.v
+#BIC <- 2*lassolike + 2*num.v
+# plot BIC as a function of penalty
+plot(penalty, BIC, log = "x", type = "o", xlab = "Lasso Penalty", ylab = "BIC")
+```
+
+```{r}
+# regularization path 
+pen <- penalty[which.min(BIC)] # get 'best' penalisation
+lasso.vec <- rep(pen, length(par.init))
+lasso.vec[no.shrink] <- 0
+vis.path(lassopath[-no.shrink,], penalty, bic = pen, main = "")
+```
+
+```{r}
+# get estimates from model with selected lasso penalisation 
+lasso.occ <- lassopath[,which.min(BIC)]
+# display results
+cov.names <- c(colnames(X),colnames(V))
+cbind(lasso.occ,cov.names)
+```
+
+The covariates we select are similar to the set of covariates Dana selected in her paper, as you may find in the appendix of her paper. 
+
+# `R` version
+
+```{r}
+sessionInfo()
+```
