@@ -1,0 +1,153 @@
+---
+title: "Covariates selection in capture-recapture models using the Lasso"
+author:
+  - Olivier Gimenez^1^*
+  - Ian Renner
+
+date: '`r Sys.Date()`'
+
+output:
+  bookdown::pdf_document2:
+    fig_caption: yes
+    fig_width: 7
+    fig_height: 7
+    df_print: kable
+    keep_tex: yes
+    number_sections: no
+    toc: no
+    includes:
+      in_header: header.tex
+    
+documentclass: article
+papersize: a4
+pagestyle: plain
+geometry: margin=1in
+linestretch: 2
+fontfamily: mathpazo
+fontsize: 11pt
+
+bibliography: 
+  - references.bib
+  - knitcitations.bib
+csl: ecology.csl
+
+link-citations: yes
+linkcolor: RoyalBlue
+urlcolor: RoyalBlue
+links-as-notes: false
+
+---
+
+\small
+
+^1^ CEFE, Univ Montpellier, CNRS, EPHE, IRD, Montpellier, France
+
+`*` Corresponding author: olivier.gimenez@cefe.cnrs.fr
+
+\normalsize
+
+\vspace{1cm}
+\hrule
+
+blabla
+
+\vspace{3mm}
+\hrule
+\vspace{5mm}
+
+*Keywords*: keyword 1, keyword 2
+
+\bleft
+\newpage
+
+```{r setup, include=FALSE, cache=FALSE, message = FALSE}
+library("knitr")
+opts_chunk$set(echo = FALSE, warning = TRUE, message = TRUE)
+opts_chunk$set(tidy = TRUE, comment = NA, highlight = TRUE)
+opts_chunk$set(fig.path = "output/figures/")
+```
+
+
+<!-- ```{r knitcitations, cache = FALSE} -->
+<!-- library(knitcitations) -->
+<!-- cleanbib()    -->
+<!-- cite_options(citation_format = "pandoc") -->
+<!-- ``` -->
+
+
+# Introduction
+
+Capture–recapture (CR) techniques are commonly employed to evaluate the impact of explanatory variables on demographic factors like survival. However, complex scenarios often necessitate the inclusion of multiple covariates to adequately describe survival patterns. In these cases, researchers typically prefer a CR modeling approach similar to multiple regression. However, this approach faces a significant challenge: the inclusion of numerous covariates escalates the number of parameters needing estimation, which can lead to reduced statistical power and less precise parameter estimates.
+
+Use intro of paper in Ecol Modelling on P2CR and that in Biometrics on splines. See also transcript of my talk at ISEC on lasso. 
+
+Question: on prend occupancy ou pas, sachant qu'il y a deux papiers qui font de l'occupancy pénalisée mais qui ne font pas de la sélection de covariables - je dis oui ;-)
+
+https://esajournals.onlinelibrary.wiley.com/doi/full/10.1890/09-1073.1
+
+https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12368
+
+Si je me lance avec occupancy, voir en quoi la pénalisation du lasso diffère des 2 proposées par hutchinson et de celle proposée par moreno et lele. 
+
+Penalised likelihood methods for occupancy have also been developed to help overcome the numerical instability of the maximum likelihood estimators (Moreno and Lele, 2010, Hutchinson et al., 2015b). These may be fitted using the occuPEN and occuPEN_CV functions in unmarked package.
+
+Voir aussi https://www.biorxiv.org/content/10.1101/052266v8 pour app ML to capture-recapture.
+
+It's been 2 years since I got in touch with Rachel, Byron and Eleni. I feel guilty for not making progress on this project. My suggestion to make sure something comes out of these reflexions is to keep the analyses simple, straight to the point of illustrating the use of Lasso for covariate selection. The good news is that I have a PhD student who should start (if we get funding) working on the topic before the end of the year, co-supervised by Ian and I, and she'll have plenty of oppotunities to explore further the issue.
+
+Below, I have 2 case studies, both have been pubished already to illustre covariate selection issues in capture-recapture and occupancy models, which makes their descrition easy, and the motivation for their use obvious. 
+
+My idea is to submit a short paper in the [Emergent Technologies section](https://esajournals.onlinelibrary.wiley.com/hub/journal/21508925/resources/author-guidelines-ECS2#Types_of_Contributions) of the journal Ecosphere. 
+
+The Lasso we implement below is similar to the description you may find in [Renner et al. (2019). Combining multiple data sources in species distribution models while accounting for spatial dependence and overfitting with combined penalized likelihood maximization. Methods in Ecology and Evolution 10: 2118-212](https://www.biorxiv.org/content/10.1101/615583v3). For now, I'm using the adaptive Lasso only, but I plan to illustrate the simple Lasso as well. 
+
+
+# Methods
+
+# Simulations
+
+# Case study
+
+To illustrate the new approach, I investigated the impact of human disturbance on the occupancy of European otter (*Lutra lutra*) in France. The otter, a semi-aquatic mammal, faced near extinction in the 20th century in France due to extensive hunting for its fur. With hunting bans and protection efforts, the species is now recolonizing the country, and the ecological question is assessing its current distribution. Data on otter detection and non-detection were collected in 2003-2005 in the Midi-Pyrénées region (see panel a in Fig. \@ref(fig:mainfig)). Observers searched for signs of otter presence at a small river catchment scale, which was used as the spatial sampling unit. These data were analyzed by @Couturier2024, who found that human density and the proportion of cultivated area influenced occupancy. In this study, I focus on a subsample of this dataset, covering $S = 56$ sites in the Lot, Aveyron and Cantal counties. Additionally, I considered the proportion of cultivated areas as an explanatory variable. Detection was considered as constant. Regarding spatial autocorrelation, since otters can move both downstream and upstream, I used a tail-down model $$\text{logit}(\boldsymbol{\psi}) = \mathbf{X} \boldsymbol{\beta} +\boldsymbol{\tau}_{td}$$ with an exponential covariance:
+
+\[
+    \text{Cov}(\tau_{i},\tau_{j})=
+\begin{cases}
+    \displaystyle{\sigma^2\exp(-h/\theta)},& \text{if sites } i \text{ and } j \text{ are flow-connected }\\
+    \displaystyle{\sigma^2\exp(-(a+b)/\theta)},& \text{if sites } i \text{ and } j \text{ are flow-unconnected }\\
+\end{cases}
+\]
+
+where I dropped the $td$ notation in $\tau_{td}$ for clarity, $h$ is the stream distance between sites $i$ and $j$, $b$ denotes the longer of the distances between sites $i$ and $j$ to the common downstream junction, $a$ denotes the shorter of the two distances, $\sigma^2$ is a variance parameter usually referred to as the partial sill and $\theta$ is a range parameter [see Apendix A in @Peterson2010].
+
+# Discussion
+
+
+# Acknowledgments
+
+I would like to warmly thank Jay Ver Hoef and Edgar Santos Fernández for useful discussions on spatial stream network models. I also thank Maëlis Kervellec for sharing her code to wrangle the otter data.
+
+## Data availability statement
+
+Data and code are available at \href{https://github.com/oliviergimenez/spatial-stream-network-occupancy-model}{https://github.com/oliviergimenez/spatial-stream-network-occupancy-model}.
+
+## Funding statement
+
+This research is a product of the DISCAR group funded by the French Foundation for Research on Biodiversity (FRB) through its synthesis center CESAB.
+
+# References
+
+
+<!-- ```{r write_citations, cache=FALSE, include=FALSE} -->
+<!-- write.bibtex(file = "knitcitations.bib") -->
+<!-- ``` -->
+
+
+::: {#refs}
+:::
+
+\eleft
+
+\clearpage
+
+\newpage

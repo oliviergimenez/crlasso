@@ -1,3 +1,0 @@
-1. comprendre pourquoi ours ne donne plus les memes res qu’avant
-2. debug mon code avec NAs pour donner pareil que unmarked (ou choisir other dataset)
-3. implement elasticnet
