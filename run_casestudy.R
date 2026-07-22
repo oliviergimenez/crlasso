@@ -198,6 +198,8 @@ plot_lasso_criterion(
   criterion = "BIC"
 )
 
+ggsave(filename = "bic_stork.png", dpi = 600)
+
 plot_lasso_path(
   path_fit = lasso_path,
   criterion = "BIC",
