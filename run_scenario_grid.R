@@ -1,20 +1,23 @@
 # factorial simulation design
 
+library(Rcpp)
+library(RcppArmadillo)
+
 source("R/simulate_cjs.R")
-source("R/cjs_likelihood.R")
-source("R/fit_adaptive_lasso.R")
-source("R/fit_candidate_models.R")
+source("R/cjs_likelihood_rcpp.R")
+source("R/fit_adaptive_lasso_rcpp.R")
 source("R/summarise_simulations.R")
 source("R/run_simulations.R")
-source("R/plotting.R")
+
+load_cjs_rcpp("R/cjs_likelihood.cpp")
 
 scenarios <- make_simulation_scenarios(
-  n_occasions  = c(10, 15, 20),
-  marked        = c(10, 20),
+  n_occasions  = c(10, 20),
+  marked        = c(20, 50),
   mean_phi      = 0.8,
   p             = c(0.5, 0.9),
   effect_size   = c(-0.3, -0.6),
-  n_covariates  = c(5, 10, 20),
+  n_covariates  = c(10, 20),
   n_active      = 2, # Que se passe-t-il lorsque le nombre de variables candidates augmente 
   # alors que seulement deux sont réellement informatives ?
   correlation   = c(0, 0.5, 0.8)

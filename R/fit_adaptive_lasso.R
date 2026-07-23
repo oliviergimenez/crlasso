@@ -27,11 +27,11 @@ fit_adaptive_lasso <- function(
     cjs_data,
     lambda = NULL,
     lambda_min = 1e-3,
-    lambda_max = 3,
-    n_lambda = 50L,
+    lambda_max = 100,
+    n_lambda = 150L,
     gamma = 1,
     unpenalised = c(1L, cjs_data$n_phi_parameters + 1L),
-    zero_tolerance = 1e-4,
+    zero_tolerance = 1e-3,
     method = "BFGS",
     control = list(maxit = 1000, reltol = 1e-10)) {
 
