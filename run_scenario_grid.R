@@ -39,7 +39,7 @@ utils::write.csv(results, "scenario_grid_results.csv", row.names = FALSE)
 
 summary_results <- summarise_simulation_study(results)
 utils::write.csv(summary_results, "scenario_grid_summary.csv", row.names = FALSE)
-print(summary_results)
+#print(summary_results)
 
 covariate_summary <- summarise_covariate_selection(results)
 utils::write.csv(covariate_summary, "simulation_covariate_selection.csv", row.names = FALSE)

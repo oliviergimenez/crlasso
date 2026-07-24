@@ -50,7 +50,7 @@ links-as-notes: false
 \vspace{1cm}
 \hrule
 
-Explaining temporal variation in demographic parameters (e.g. survival, dispersal) is a central goal of capture--recapture (CR) studies, and the growing availability of environmental covariates -- e.g. from remote sensing -- means analysts increasingly face many, often correlated, candidate covariates. Standard covariate--selection tools become impractical as the number of candidates grows, since the number of candidate models increases combinatorially. We propose to use the Lasso, a penalized-likelihood approach that shrinks regression coefficients and sets unimportant ones to zero, to perform automatic covariate selection in CR models. We implement an adaptive Lasso applied to the likelihood of Cormack-Jolly-Seber (CJS) models, with the regularization parameter selected by BIC along a grid of penalty values. A simulation study spanning a range of sample sizes, detection probabilities, effect sizes, numbers of covariates and correlation structures shows that the Lasso recovers the correct subset of covariates [PLACEHOLDER: summarise performances]. We illustrate the approach with a 16-year CR dataset on white storks (*Ciconia ciconia*) breeding in France, in which survival is modelled as a function of rainfall at 10 weather stations in the wintering grounds (Sahel, West Africa). Because it operates directly on the likelihood, the approach extends naturally to CR models with several linked parameter sets, where combinatorial model selection is especially costly.
+Explaining temporal variation in demographic parameters (e.g. survival, dispersal) is a central goal of capture--recapture (CR) studies, and the growing availability of environmental covariates -- e.g. from remote sensing -- means analysts increasingly face many, often correlated, candidate covariates. Standard covariate--selection tools become impractical as the number of candidates grows, since the number of candidate models increases combinatorially. We propose to use the Lasso, a penalized-likelihood approach that shrinks regression coefficients and sets unimportant ones to zero, to perform automatic covariate selection in CR models. We implement an adaptive Lasso applied to the likelihood of Cormack-Jolly-Seber (CJS) models, with the regularization parameter selected by BIC along a grid of penalty values. A simulation study spanning a range of sample sizes, detection probabilities, effect sizes, numbers of covariates and correlation structures shows that the Lasso blabla [PLACEHOLDER: summarise performances, including comparison with AIC]. We illustrate the approach with a 16-year CR dataset on white storks (*Ciconia ciconia*) breeding in France, in which survival is modelled as a function of rainfall at 10 weather stations in the wintering grounds (Sahel, West Africa). Because it operates directly on the likelihood, the approach extends naturally to CR models with several linked parameter sets, where combinatorial model selection is especially costly.
 
 \vspace{3mm}
 \hrule
@@ -138,9 +138,9 @@ To evaluate the ability of the adaptive Lasso to identify the true survival cova
 
 ## Design
 
-We simulated capture--recapture data under Cormack--Jolly--Seber models with either 10 or 20 capture occasions and either 10 or 20 newly marked individuals per occasion. Mean survival probability was fixed at $\bar{\phi}=0.8$, whereas detection probability took values of 0.5 or 0.9. Survival was modelled as a function of either 10 or 20 candidate covariates. In every scenario, only two covariates had a genuine effect on survival, with regression coefficients set to either $-0.3$ or $-0.6$ on the logit scale, while all remaining coefficients were equal to zero. This design allowed us to examine how covariate-selection performance changed as the number of candidate predictors increased while the number of truly informative predictors remained fixed. Covariates were generated either independently or with a pairwise correlation of 0.8, representing respectively favourable and challenging selection conditions.
+We simulated capture--recapture data under Cormack--Jolly--Seber models with either 10 or 20 capture occasions and either 10 or 20 newly marked individuals per occasion. Mean survival probability was fixed at $\bar{\phi}=0.8$, whereas detection probability took values of 0.5 or 0.9. Survival was modelled as a function of either 10 or 20 candidate covariates. In every scenario, only two covariates had a genuine effect on survival, with regression coefficients set to either $-0.3$ or $-0.6$ on the logit scale, while all remaining coefficients were equal to zero. This design allowed us to examine how covariate-selection performance changed as the number of candidate predictors increased while the number of truly informative predictors remained fixed. Covariates were generated either independently or with a pairwise correlation of 0.5 or 0.8, representing respectively favourable and challenging selection conditions.
 
-The full factorial design comprised 64 scenarios. Each scenario was replicated 100 times, resulting in a total of 6400 simulated data sets. For each data set, the adaptive Lasso was fitted over 150 values of the regularization parameter $\lambda$, logarithmically spaced between $10^{-3}$ and $10^2$, and the final model was selected using the Bayesian Information Criterion.
+The full factorial design comprised 96 scenarios. Each scenario was replicated 100 times, resulting in a total of 9600 simulated data sets. For each data set, the adaptive Lasso was fitted over 150 values of the regularization parameter $\lambda$, logarithmically spaced between $10^{-3}$ and $10^2$, and the final model was selected using the Bayesian Information Criterion.
 
 ## Performance metrics
 
@@ -148,7 +148,68 @@ We assessed performance using four complementary criteria. The primary performan
 
 ## Results
 
-[PLACEHOLDER: summarize the simulation results here. Figures will illustrate how exact selection probability, sensitivity, specificity, model size and computation time vary across simulation scenarios.]
+The adaptive Lasso converged successfully for all simulated datasets. The probability of recovering the exact set of active covariates increased with the number of capture occasions, the number of individuals marked per occasion, detection probability, and covariate effect magnitude. Conversely, exact selection became less likely as the number of candidate covariates and the correlation among them increased (Fig. \@ref(fig:exact-selection)). These adjusted effects were estimated jointly, so the influence of each simulation factor was evaluated while averaging over the balanced levels of all remaining factors.
+
+```{r exact-selection, out.width="100%", fig.align='center', fig.cap="Adjusted probability of exact model selection using adaptive Lasso with BIC. Points are estimated marginal probabilities from a binomial generalized linear model, adjusted for the other simulation factors; vertical bars are 95% confidence intervals.", eval=TRUE}
+include_graphics("figure_exact_selection_adjusted.png")
+```
+
+The adaptive Lasso tuned using BIC generally behaved conservatively. Specificity remained high across the simulation design, indicating that inactive covariates were rarely retained, whereas sensitivity was more strongly affected by the amount of information in the data (Fig. \@ref(fig:senspec)). Thus, under difficult sampling conditions, failures of exact model recovery were driven more often by omission of active covariates than by extensive inclusion of inactive covariates.
+
+```{r senspec, out.width="100%", fig.align='center', fig.cap="Adjusted sensitivity and specificity of adaptive-Lasso selection using BIC. Estimates are marginal predictions from quasibinomial generalized linear models, adjusted for the other simulation factors; vertical bars are 95% confidence intervals.", eval=TRUE}
+include_graphics("figure_sensitivity_specificity_adjusted.png")
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(emmeans)
+
+bic_file <- "scenario_grid_results_BIC.csv"
+aic_file <- "scenario_grid_results_AIC.csv"
+
+read_results <- function(path, expected_criterion) {
+  if (!file.exists(path)) stop("File not found: ", path)
+  out <- read.csv(path, check.names = FALSE, stringsAsFactors = FALSE)
+
+  required <- c(
+    "scenario_id", "replicate", "n_occasions", "marked", "p",
+    "effect_size", "n_covariates", "correlation", "exact_selection",
+    "n_selected", "true_positives", "false_positives", "false_negatives",
+    "true_negatives", "sensitivity", "specificity", "convergence"
+  )
+  absent <- setdiff(required, names(out))
+  if (length(absent)) {
+    stop(path, " is missing: ", paste(absent, collapse = ", "))
+  }
+
+  if ("criterion" %in% names(out)) {
+    observed <- unique(toupper(as.character(out$criterion)))
+    observed <- observed[!is.na(observed)]
+    if (length(observed) && !all(observed == expected_criterion)) {
+      warning(path, " contains criterion value(s): ", paste(observed, collapse = ", "),
+              "; expected ", expected_criterion, ".")
+    }
+  }
+
+  out %>%
+    filter(is.na(convergence) | convergence == 0L) %>%
+    mutate(
+      occasions = factor(n_occasions, levels = c(10, 20)),
+      individuals = factor(marked, levels = c(20, 50)),
+      detectability = factor(p, levels = c(0.5, 0.9)),
+      effect = factor(effect_size, levels = c(-0.3, -0.6)),
+      candidates = factor(n_covariates, levels = c(10, 20)),
+      correlation_factor = factor(correlation, levels = c(0, 0.5, 0.8))
+    )
+}
+
+bic <- read_results(bic_file, "BIC")
+aic <- read_results(aic_file, "AIC")
+```
+
+Across all simulation scenarios, BIC recovered the exact model in `r sprintf("%.1f", 100 * mean(bic$exact_selection, na.rm = TRUE))`% of datasets, with mean sensitivity `r sprintf("%.3f", mean(bic$sensitivity, na.rm = TRUE))`, mean specificity `r sprintf("%.3f", mean(bic$specificity, na.rm = TRUE))`, and a mean selected model size of `r sprintf("%.2f", mean(bic$n_selected, na.rm = TRUE))` covariates. The corresponding values under AIC were `r sprintf("%.1f", 100 * mean(aic$exact_selection, na.rm = TRUE))`%, `r sprintf("%.3f", mean(aic$sensitivity, na.rm = TRUE))`, `r sprintf("%.3f", mean(aic$specificity, na.rm = TRUE))`, and `r sprintf("%.2f", mean(aic$n_selected, na.rm = TRUE))`, respectively.
+
+AIC therefore increased sensitivity relative to BIC but reduced specificity and selected larger models. Because the objective was identification of a parsimonious set of relevant covariates rather than maximization of predictive performance, BIC offered the more appropriate compromise between detecting active effects and limiting false discoveries.
 
 # Case study: white stork survival and Sahelian rainfall {#case-study}
 
@@ -158,15 +219,17 @@ Most French white storks winter in the Sahel, where annual rainfall strongly inf
 
 We fitted the full survival model including all ten rainfall covariates and computed the adaptive Lasso solution path over the regularization grid described above. The optimal model was selected using the Bayesian Information Criterion.
 
-The BIC reached its minimum for a penalty value of approximately $\lambda = 0.05$ (Fig. \@ref(fig:bic-path)).
+The BIC reached its minimum for a penalty value of approximately $\lambda = 8.4$ (Fig. \@ref(fig:bic-path)). The regularization parameter is shown on a logarithmic scale.
 
-```{r bic-path, out.width="100%", fig.align='center', fig.cap="Bayesian Information Criterion as a function of the regularization parameter $\\lambda$ for the white stork survival model.", eval=TRUE}
+```{r bic-path, out.width="100%", fig.align='center', fig.cap="Bayesian Information Criterion as a function of the regularization parameter $\\lambda$ for the white stork survival model. The horizontal axis is displayed on a logarithmic scale. The vertical dashed line indicates the value of $\\lambda$ minimizing the BIC.", eval=TRUE}
 include_graphics("bic_stork.png")
 ```
 
-The coefficient paths (Fig. \@ref(fig:coef-path)) show progressive shrinkage of the rainfall effects as the penalty increases. 
+The coefficient paths (Fig. \@ref(fig:coef-path)) show the progressive
+shrinkage of the rainfall effects as the penalty increases. The regularization
+parameter is displayed on a logarithmic scale.
 
-```{r coef-path, out.width="100%", fig.align='center', fig.cap="Regularization paths for the ten rainfall coefficients. The vertical dashed line indicates the value of $\\lambda$ selected by the Bayesian Information Criterion.", eval=TRUE}
+```{r coef-path, out.width="100%", fig.align='center', fig.cap="Regularization paths for the ten rainfall coefficients as a function of the penalty parameter $\\lambda$. The horizontal axis is displayed on a logarithmic scale. The vertical dashed line indicates the value of $\\lambda$ selected by the Bayesian Information Criterion.", eval=TRUE}
 include_graphics("path_stork.png")
 ```
 
