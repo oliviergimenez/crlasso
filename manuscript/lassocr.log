@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.26)  24 JUL 2026 10:02
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.26)  24 JUL 2026 19:21
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -538,44 +538,43 @@ LaTeX Font Info:    Font shape `U/msb/m/n' will be
 <figure_exact_selection_adjusted.png, id=66, 650.43pt x 433.62pt>
 File: figure_exact_selection_adjusted.png Graphic file (type png)
 <use figure_exact_selection_adjusted.png>
-Package pdftex.def Info: figure_exact_selection_adjusted.png  used on input line 262.
+Package pdftex.def Info: figure_exact_selection_adjusted.png  used on input line 266.
 (pdftex.def)             Requested size: 452.9679pt x 301.98367pt.
-[9 <./figure_exact_selection_adjusted.png>]
-<figure_sensitivity_specificity_adjusted.png, id=74, 650.43pt x 433.62pt>
+<figure_sensitivity_specificity_adjusted.png, id=68, 650.43pt x 433.62pt>
 File: figure_sensitivity_specificity_adjusted.png Graphic file (type png)
 <use figure_sensitivity_specificity_adjusted.png>
-Package pdftex.def Info: figure_sensitivity_specificity_adjusted.png  used on input line 273.
+Package pdftex.def Info: figure_sensitivity_specificity_adjusted.png  used on input line 277.
 (pdftex.def)             Requested size: 452.9679pt x 301.98367pt.
-[10 <./figure_sensitivity_specificity_adjusted.png>]
-<bic_stork.png, id=81, 379.29704pt x 404.9529pt>
+[9] [10 <./figure_exact_selection_adjusted.png>] [11 <./figure_sensitivity_specificity_adjusted.png>]
+<bic_stork.png, id=85, 379.29704pt x 404.9529pt>
 File: bic_stork.png Graphic file (type png)
 <use bic_stork.png>
-Package pdftex.def Info: bic_stork.png  used on input line 296.
+Package pdftex.def Info: bic_stork.png  used on input line 300.
 (pdftex.def)             Requested size: 452.9679pt x 483.62389pt.
-<path_stork.png, id=83, 560.8152pt x 404.9529pt>
+<path_stork.png, id=87, 560.8152pt x 404.9529pt>
 File: path_stork.png Graphic file (type png)
 <use path_stork.png>
-Package pdftex.def Info: path_stork.png  used on input line 309.
+Package pdftex.def Info: path_stork.png  used on input line 313.
 (pdftex.def)             Requested size: 452.9679pt x 327.07701pt.
-[11] [12 <./bic_stork.png>] [13 <./path_stork.png>] [14] [15] (./lassocr.aux)
+[12] [13 <./bic_stork.png>] [14 <./path_stork.png>] [15] [16] [17] (./lassocr.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 14648 strings out of 469471
- 230331 string characters out of 5466955
- 700275 words of memory out of 5000000
- 42790 multiletter control sequences out of 15000+600000
- 689014 words of font info for 308 fonts, out of 8000000 for 9000
+ 14670 strings out of 469471
+ 230545 string characters out of 5466955
+ 700276 words of memory out of 5000000
+ 42792 multiletter control sequences out of 15000+600000
+ 690449 words of font info for 320 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
- 83i,10n,93p,1550b,541s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 83i,10n,93p,1550b,499s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </Users/oliviergimenez/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1095.600pk> </Users/oliviergimenez/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1000.600pk> </Users/oliviergimenez/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/ecss0800.450pk></Users/oliviergimenez/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/oliviergimenez/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/oliviergimenez/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/oliviergimenez/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmbi.pfb></Users/oliviergimenez/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb></Users/oliviergimenez/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb></Users/oliviergimenez/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></Users/oliviergimenez/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplbi8a.pfb></Users/oliviergimenez/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></Users/oliviergimenez/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on lassocr.pdf (15 pages, 1089105 bytes).
+Output written on lassocr.pdf (17 pages, 1091380 bytes).
 PDF statistics:
- 260 PDF objects out of 1000 (max. 8388607)
- 192 compressed objects within 2 object streams
- 39 named destinations out of 1000 (max. 500000)
- 69781 words of extra memory for PDF output out of 74296 (max. 10000000)
+ 268 PDF objects out of 1000 (max. 8388607)
+ 198 compressed objects within 2 object streams
+ 41 named destinations out of 1000 (max. 500000)
+ 73877 words of extra memory for PDF output out of 74296 (max. 10000000)
 

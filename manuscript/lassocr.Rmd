@@ -128,6 +128,8 @@ where $\ell(\hat{\boldsymbol{\beta}}_\lambda)$ is the unpenalized log-likelihood
 
 We prefer this grid-search/BIC strategy to $k$-fold cross-validation for two reasons. First, cross-validation requires refitting the entire regularization path for each fold, increasing the computational cost. Second, the value of $\lambda$ at which all penalized coefficients become zero generally differs across folds, making it difficult to define a common regularization path. Moreover, because our primary objective is covariate selection rather than prediction, information criteria such as the BIC provide a natural model selection criterion.
 
+**IMPORTANT**: Use a post-lasso refit (identifier le support, réajuster le CJS non pénalisé sur ce support, AIC/BIC du refit) est une pratique standard (« relaxed lasso » / « post-lasso », cf. Meinshausen 2007, Belloni & Chernozhukov 2013).
+
 ## Implementation
 
 The CJS likelihood, the adaptive-Lasso path and the BIC-based selection are implemented in R [PLACEHOLDER: packages used]. Coefficients are considered zero below a small numerical tolerance ($10^{-3}$ here) rather than exactly zero, as is typical of penalized likelihoods maximized with general-purpose optimizers rather than coordinate-descent algorithms [PLACEHOLDER: acknowledge/discuss discrepancy with true coordinate-descent Lasso solutions].
@@ -138,9 +140,11 @@ To evaluate the ability of the adaptive Lasso to identify the true survival cova
 
 ## Design
 
-We simulated capture--recapture data under Cormack--Jolly--Seber models with either 10 or 20 capture occasions and either 10 or 20 newly marked individuals per occasion. Mean survival probability was fixed at $\bar{\phi}=0.8$, whereas detection probability took values of 0.5 or 0.9. Survival was modelled as a function of either 10 or 20 candidate covariates. In every scenario, only two covariates had a genuine effect on survival, with regression coefficients set to either $-0.3$ or $-0.6$ on the logit scale, while all remaining coefficients were equal to zero. This design allowed us to examine how covariate-selection performance changed as the number of candidate predictors increased while the number of truly informative predictors remained fixed. Covariates were generated either independently or with a pairwise correlation of 0.5 or 0.8, representing respectively favourable and challenging selection conditions.
+We simulated capture--recapture data under Cormack--Jolly--Seber models with 20 capture occasions and either 10 or 20 newly marked individuals per occasion. Mean survival probability was fixed at $\bar{\phi}=0.8$, whereas detection probability took values of 0.5 or 0.9. Survival was modelled as a function of either 5 or 10 candidate covariates. In every scenario, only two covariates had a genuine effect on survival, with regression coefficients set to either $-0.3$ or $-0.6$ on the logit scale, while all remaining coefficients were equal to zero. This design allowed us to examine how covariate-selection performance changed as the number of candidate predictors increased while the number of truly informative predictors remained fixed. Covariates were generated either independently or with a pairwise correlation of 0.5 or 0.8, representing respectively favourable and challenging selection conditions.
 
-The full factorial design comprised 96 scenarios. Each scenario was replicated 100 times, resulting in a total of 9600 simulated data sets. For each data set, the adaptive Lasso was fitted over 150 values of the regularization parameter $\lambda$, logarithmically spaced between $10^{-3}$ and $10^2$, and the final model was selected using the Bayesian Information Criterion.
+**IMPORTANT**: the number of env covariates should be less than the number of years i.e. time intervals [PLACEHOLDER: paper Morten in JAE].
+
+The full factorial design comprised 48 scenarios. Each scenario was replicated 100 times, resulting in a total of 4800 simulated data sets. For each data set, the adaptive Lasso was fitted over 80 values of the regularization parameter $\lambda$, logarithmically spaced between $10^{-3}$ and $10^2$, and the final model was selected using the Bayesian Information Criterion.
 
 ## Performance metrics
 
