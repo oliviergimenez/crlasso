@@ -112,23 +112,24 @@ In our implementation, only the survival regression coefficients are penalized. 
 
 ## Choice of the regularization parameter
 
-The amount of shrinkage is controlled by the regularization parameter $\lambda$. We evaluate a sequence of 150 values logarithmically spaced between $10^{-3}$ and $10^{2}$. For each value of $\lambda$, the penalized likelihood is maximized, yielding the corresponding adaptive Lasso estimate.
+The amount of shrinkage is controlled by the regularization parameter $\lambda$. We evaluate a sequence of values logarithmically spaced between $10^{-3}$ and $10^{2}$. For each value of $\lambda$, the adaptive Lasso optimization identifies a set of nonzero regression coefficients defining the corresponding candidate model.
+
+Rather than comparing penalized estimates directly, we adopt a post-Lasso refit strategy. For each distinct support identified along the regularization path, the Cormack--Jolly--Seber model is refitted by maximum likelihood without penalization while retaining only the covariates selected by the adaptive Lasso. Information criteria are then computed from this unpenalized refit rather than from the penalized estimates. This approach, also referred to as post-Lasso or relaxed Lasso, substantially reduces the shrinkage bias inherent to penalized estimators while allowing candidate models to be compared using a common likelihood scale [@Meinshausen2007; @Belloni2013]. More generally, this strategy separates variable selection from parameter estimation: the adaptive Lasso is used to identify a parsimonious set of covariates, whereas parameter estimation and model comparison rely on unpenalized maximum-likelihood estimates obtained from the selected model.
 
 The retained model is selected by minimizing the Bayesian Information Criterion (BIC),
 
 $$
-\mathrm{BIC}(\lambda)
+\mathrm{BIC}
 =
--2\,\ell(\hat{\boldsymbol{\beta}}_\lambda)
+-2\,\ell(\hat{\boldsymbol{\beta}})
 +
-df_\lambda \log(n),
+df \log(n),
 $$
 
-where $\ell(\hat{\boldsymbol{\beta}}_\lambda)$ is the unpenalized log-likelihood evaluated at the adaptive Lasso estimates, $df_\lambda$ is the number of nonzero regression coefficients plus the unpenalized parameters, and $n$ is the effective sample size. Using the unpenalized likelihood ensures that models are compared on the same likelihood scale while model complexity is accounted for through the effective number of parameters. A coefficient is considered equal to zero whenever its absolute value is smaller than $10^{-3}$.
+where $\ell(\hat{\boldsymbol{\beta}})$ is the maximized log-likelihood of the unpenalized refitted model, $df$ is the total number of estimated parameters in the refitted model (including both selected regression coefficients and unpenalized parameters), and $n$ is the effective sample size. When several values of $\lambda$ produce the same support, the corresponding model is refitted only once, thereby avoiding unnecessary computations along the regularization path. A regression coefficient is considered equal to zero whenever its absolute value is smaller than $10^{-3}$.
 
-We prefer this grid-search/BIC strategy to $k$-fold cross-validation for two reasons. First, cross-validation requires refitting the entire regularization path for each fold, increasing the computational cost. Second, the value of $\lambda$ at which all penalized coefficients become zero generally differs across folds, making it difficult to define a common regularization path. Moreover, because our primary objective is covariate selection rather than prediction, information criteria such as the BIC provide a natural model selection criterion.
+We prefer this grid-search/BIC strategy to $k$-fold cross-validation for several reasons. First, cross-validation requires refitting the entire regularization path for every fold, substantially increasing the computational cost. Second, the value of $\lambda$ at which all penalized coefficients become zero generally differs across folds, making it difficult to define a common regularization path. Finally, because our primary objective is covariate selection rather than prediction, information criteria provide a natural and statistically principled basis for model selection.
 
-**IMPORTANT**: Use a post-lasso refit (identifier le support, réajuster le CJS non pénalisé sur ce support, AIC/BIC du refit) est une pratique standard (« relaxed lasso » / « post-lasso », cf. Meinshausen 2007, Belloni & Chernozhukov 2013).
 
 ## Implementation
 
@@ -142,8 +143,6 @@ To evaluate the ability of the adaptive Lasso to identify the true survival cova
 
 We simulated capture--recapture data under Cormack--Jolly--Seber models with 20 capture occasions and either 10 or 20 newly marked individuals per occasion. Mean survival probability was fixed at $\bar{\phi}=0.8$, whereas detection probability took values of 0.5 or 0.9. Survival was modelled as a function of either 5 or 10 candidate covariates. In every scenario, only two covariates had a genuine effect on survival, with regression coefficients set to either $-0.3$ or $-0.6$ on the logit scale, while all remaining coefficients were equal to zero. This design allowed us to examine how covariate-selection performance changed as the number of candidate predictors increased while the number of truly informative predictors remained fixed. Covariates were generated either independently or with a pairwise correlation of 0.5 or 0.8, representing respectively favourable and challenging selection conditions.
 
-**IMPORTANT**: the number of env covariates should be less than the number of years i.e. time intervals [PLACEHOLDER: paper Morten in JAE].
-
 The full factorial design comprised 48 scenarios. Each scenario was replicated 100 times, resulting in a total of 4800 simulated data sets. For each data set, the adaptive Lasso was fitted over 80 values of the regularization parameter $\lambda$, logarithmically spaced between $10^{-3}$ and $10^2$, and the final model was selected using the Bayesian Information Criterion.
 
 ## Performance metrics
@@ -152,7 +151,7 @@ We assessed performance using four complementary criteria. The primary performan
 
 ## Results
 
-The adaptive Lasso converged successfully for all simulated datasets. The probability of recovering the exact set of active covariates increased with the number of capture occasions, the number of individuals marked per occasion, detection probability, and covariate effect magnitude. Conversely, exact selection became less likely as the number of candidate covariates and the correlation among them increased (Fig. \@ref(fig:exact-selection)). These adjusted effects were estimated jointly, so the influence of each simulation factor was evaluated while averaging over the balanced levels of all remaining factors.
+The adaptive Lasso converged successfully for all simulated datasets. The probability of recovering the exact set of active covariates increased with the number of individuals marked per occasion, detection probability, and covariate effect magnitude. Conversely, exact selection became less likely as the number of candidate covariates and the correlation among them increased (Fig. \@ref(fig:exact-selection)). These adjusted effects were estimated jointly, so the influence of each simulation factor was evaluated while averaging over the balanced levels of all remaining factors.
 
 ```{r exact-selection, out.width="100%", fig.align='center', fig.cap="Adjusted probability of exact model selection using adaptive Lasso with BIC. Points are estimated marginal probabilities from a binomial generalized linear model, adjusted for the other simulation factors; vertical bars are 95% confidence intervals.", eval=TRUE}
 include_graphics("figure_exact_selection_adjusted.png")
