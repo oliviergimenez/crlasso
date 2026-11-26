@@ -2,13 +2,14 @@
 \PassOptionsToPackage{unicode}{hyperref}
 \PassOptionsToPackage{hyphens}{url}
 \PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
-%
 \documentclass[
   11pt,
   a4paper,
 ]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb}
-\usepackage{setspace}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
 \usepackage{iftex}
 \ifPDFTeX
   \usepackage[T1]{fontenc}
@@ -29,6 +30,7 @@
   \usepackage[]{microtype}
   \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
 }{}
+\usepackage{setspace}
 \makeatletter
 \@ifundefined{KOMAClassName}{% if non-KOMA class
   \IfFileExists{parskip.sty}{%
@@ -39,9 +41,8 @@
 }{% if KOMA class
   \KOMAoptions{parskip=half}}
 \makeatother
-\usepackage{xcolor}
-\usepackage[margin=1in]{geometry}
 \usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
 \usepackage{calc} % for calculating minipage widths
 % Correct order of tables after \paragraph or \subparagraph
 \usepackage{etoolbox}
@@ -66,11 +67,6 @@
 % Set default figure placement to htbp
 \def\fps@figure{htbp}
 \makeatother
-\setlength{\emergencystretch}{3em} % prevent overfull lines
-\providecommand{\tightlist}{%
-  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
-\pagestyle{plain}
 % definitions for citeproc citations
 \NewDocumentCommand\citeproctext{}{}
 \NewDocumentCommand\citeproc{mm}{%
@@ -104,6 +100,10 @@
 \newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{\strut#1\strut}}
 \newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{\strut#1\strut}}
 \newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+\pagestyle{plain}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \usepackage{lineno} % add 
 \usepackage{amsmath} % add 
 \linenumbers % turns line numbering on 
@@ -134,7 +134,7 @@
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same}
 \hypersetup{
-  pdftitle={Covariates selection in capture-recapture models using the Lasso},
+  pdftitle={Covariate selection in capture-recapture models using the adaptive Lasso},
   pdfauthor={Olivier Gimenez1*; Ian Renner2},
   colorlinks=true,
   linkcolor={RoyalBlue},
@@ -143,9 +143,9 @@
   urlcolor={RoyalBlue},
   pdfcreator={LaTeX via pandoc}}
 
-\title{Covariates selection in capture-recapture models using the Lasso}
+\title{Covariate selection in capture-recapture models using the adaptive Lasso}
 \author{Olivier Gimenez\textsuperscript{1}* \and Ian Renner\textsuperscript{2}}
-\date{2026-07-25}
+\date{2026-11-26}
 
 \begin{document}
 \maketitle
@@ -164,43 +164,43 @@
 \vspace{1cm}
 \hrule
 
-Explaining temporal variation in demographic parameters (e.g.~survival, dispersal) is a central goal of capture--recapture (CR) studies, and the growing availability of environmental covariates -- e.g.~from remote sensing -- means analysts increasingly face many, often correlated, candidate covariates. Standard covariate--selection tools become impractical as the number of candidates grows, since the number of candidate models increases combinatorially. We propose to use the Lasso, a penalized-likelihood approach that shrinks regression coefficients and sets unimportant ones to zero, to perform automatic covariate selection in CR models. We implement an adaptive Lasso applied to the likelihood of Cormack-Jolly-Seber (CJS) models, with the regularization parameter selected by BIC along a grid of penalty values. A simulation study spanning a range of sample sizes, detection probabilities, effect sizes, numbers of covariates and correlation structures shows that the Lasso blabla {[}PLACEHOLDER: summarise performances, including comparison with AIC{]}. We illustrate the approach with a 16-year CR dataset on white storks (\emph{Ciconia ciconia}) breeding in France, in which survival is modelled as a function of rainfall at 10 weather stations in the wintering grounds (Sahel, West Africa). Because it operates directly on the likelihood, the approach extends naturally to CR models with several linked parameter sets, where combinatorial model selection is especially costly.
+Explaining temporal variation in demographic parameters (e.g.~survival, dispersal) is a central goal of capture-recapture (CR) studies, and the growing availability of environmental covariates means analysts increasingly face many, often correlated, candidate covariates. Standard covariate-selection tools become impractical as the number of candidates grows, since the number of candidate models increases combinatorially. We propose to use the Lasso, a penalized-likelihood approach that shrinks regression coefficients and sets some of them to zero, to perform automatic covariate selection in CR models. We implemented an adaptive Lasso applied to the likelihood of Cormack-Jolly-Seber (CJS) models, with the regularization parameter selected by BIC or AIC along a grid of penalty values. To assess performance, we carried out a simulation study spanning a range of sample sizes, detection probabilities, effect sizes, numbers of covariates and correlation structures. Selection performance improved with more marked individuals, higher detection probabilities and larger effect magnitudes, and deteriorated as the number of candidate covariates and their correlation increased. The adaptive Lasso combined with BIC generally behaved conservatively, rarely retaining irrelevant covariates but sometimes missing genuine effects. Using AIC instead of BIC improved the detection of relevant effects but at the cost of more false positives and a lower probability of recovering the true set of covariates. We illustrated the approach with a 16-year CR dataset on white storks (\emph{Ciconia ciconia}) breeding in France, in which survival was modelled as a function of rainfall at 10 weather stations in the wintering grounds (Sahel, West Africa). The adaptive Lasso offers a promising alternative to conventional model selection, making the investigation of environmental correlates of demographic variation more tractable as the number of candidate covariates and the complexity of CR models increase.
 
 \vspace{3mm}
 \hrule
 \vspace{5mm}
 
-\emph{Keywords}: capture--recapture; covariate selection; Lasso; penalized likelihood; survival analysis; regularization
+\emph{Keywords}: capture-recapture; covariate selection; Lasso; penalized likelihood; survival analysis; regularization
 
 \newpage
 
 \section{Introduction}\label{introduction}
 
-Explaining variation in demographic parameters such as survival or dispersal is a central objective of statistical ecology. Capture--recapture (CR) methods are the standard tool for this task: individuals are captured, marked and (imperfectly) re-observed over time, and demographic parameters are estimated while explicitly accounting for detection probability (\citeproc{ref-Lebreton1992}{Lebreton et al. 1992}). To relate demographic paramters to environmental or individual covariates, CR modelling is typically framed as a form of (generalized linear) model, in which the temporal or individual variation in parameters is explained by one or several covariates on the logit scale (\citeproc{ref-Lebreton1992}{Lebreton et al. 1992}).
+Explaining variation in demographic parameters such as survival or dispersal is a central objective of statistical ecology (\citeproc{ref-gimenez2014}{Gimenez et al. 2014}). Capture-recapture (CR) methods are the standard tool for this task. Individuals are captured, marked and (imperfectly) re-observed over time, and demographic parameters are estimated while explicitly accounting for detection probability (\citeproc{ref-Lebreton1992}{Lebreton et al. 1992}). To relate demographic parameters to environmental or individual covariates, CR modelling is typically framed as a form of generalized linear model, in which the temporal or individual variation in parameters is explained by one or several covariates on the logit scale (\citeproc{ref-Lebreton1992}{Lebreton et al. 1992}).
 
-This regression-like framing runs into a practical difficulty as soon as the number of candidate covariates grows. This situation has become the norm rather than the exception with the increasing availability of environmental data from remote sensing and biologging. Analysts are then confronted with many, often correlated, candidate covariates, and typically do not know a priori which of them belong in the model. Including all of them inflates the number of parameters to estimate, which degrades precision and predictive performance; strong correlation among covariates further destabilizes numerical estimation {[}PLACEHOLDER: cite illustrative example{]}.
+This regression-like framing runs into a practical difficulty as soon as the number of candidate covariates grows. This situation has become the norm rather than the exception with the increasing availability of environmental data from remote sensing and biologging. Ecologists are then confronted with many, often correlated, candidate covariates, and typically do not know a priori which of them belong in the model. Including all of them inflates the number of parameters to estimate, which may degrade precision and predictive performance, while strong correlation among covariates may further destabilizes numerical estimation.
 
-Several strategies exist to select covariates in CR models. Analysts commonly reduce the covariate set a priori based on ecological reasoning and collinearity diagnostics, then compare a set of candidate models using information criteria such as AIC, or a stepwise procedure. Bayesian alternatives include DIC, stochastic search variable selection (SSVS) or reversible-jump MCMC (RJMCMC) {[}PLACEHOLDER: refs{]}. All of these approaches, however, require fitting and comparing a number of candidate models that grows combinatorially with the number of covariates (\(2^K\) models for \(K\) covariates), which quickly becomes impractical, and this number multiplies further in CR models with several linked parameter sets (survival, detection, transition) {[}PLACEHOLDER: needs to be better explained{]}.
+Several strategies exist to select covariates in CR models. Ecologists commonly reduce the covariate set a priori based on ecological reasoning and collinearity diagnostics, then compare a set of candidate models using information criteria such as AIC, or a stepwise procedure (\citeproc{ref-burnham2002}{Burnham and Anderson 2002}); Bayesian alternatives include DIC, stochastic search variable selection (SSVS) or reversible-jump MCMC (RJMCMC) (\citeproc{ref-hooten2015}{Hooten and Hobbs 2015}, \citeproc{ref-tredennick2021}{Tredennick et al. 2021}). The underlying model space, however, grows rapidly with the number of candidate covariates (\(2^K\) models for \(K\) covariates), making exhaustive model comparison impractical. This number multiplies further in CR models with several linked parameter sets (survival, detection and transition probabilities) because each parameter set may have its own combination of candidate covariates.
 
-Here we explore an alternative route: instead of comparing discrete candidate models, we cast covariate selection as a continuous shrinkage problem. Penalized-likelihood methods add a penalty on the magnitude of regression coefficients to the likelihood being maximized; the Lasso {[}Least Absolute Shrinkage and Selection Operator{]} uses an \(L_1\) penalty that has the property of setting some coefficient estimates exactly to zero, thereby performing covariate selection and shrinkage simultaneously, within a single model fit along a grid of penalty values. Penalized-likelihood approaches related to the Lasso have already been used in ecology, in particular for occupancy models and for species distribution models combining multiple data sources {[}PLACEHOLDER: develop a bit, with refs{]}, but -- to our knowledge -- not yet for covariate selection in CR models, which is the gap we address here.
+Here we explore an alternative route. Instead of comparing candidate models, we cast covariate selection as a shrinkage problem. Penalized-likelihood methods add a penalty on the magnitude of regression coefficients to the likelihood being maximized; the Lasso for Least Absolute Shrinkage and Selection Operator (\citeproc{ref-tibshilasso}{Tibshirani 1996}) uses an \(L_1\) penalty that has the property of setting some coefficient estimates exactly to zero, thereby performing covariate selection and shrinkage simultaneously. Penalized-likelihood approaches related to the Lasso have been used in ecology, notably for occupancy models (\citeproc{ref-hutchinson2015}{Hutchinson et al. 2015}, \citeproc{ref-clipp2021}{Clipp et al. 2021}). However, to our knowledge, they have not yet been applied to covariate selection in CR models. Here, we address this gap.
 
-In this paper, we adapt the (adaptive) Lasso to the likelihood of Cormack--Jolly--Seber (CJS) CR models to perform automatic selection of covariates on survival. We describe the method, evaluate its performance through a simulation study spanning a range of sample sizes, detection probabilities, numbers of covariates and correlation structures, and illustrate it with a case study on the effect of Sahelian rainfall on the survival of white storks (\emph{Ciconia ciconia}) breeding in France. We conclude with current limitations and extensions.
+In this paper, we apply the adaptive Lasso to the likelihood of Cormack-Jolly-Seber (CJS) CR models to perform automatic selection of covariates on survival. We describe the method, evaluate its performance through a simulation study spanning a range of sample sizes, detection probabilities, numbers of covariates and correlation structures, compare the performance of AIC and BIC for selecting models along the regularization path, and illustrate it with a case study on the effect of Sahelian rainfall on the survival of white storks (\emph{Ciconia ciconia}) breeding in France. We conclude with current limitations and extensions.
 
 \section{Methods}\label{methods}
 
-\subsection{Capture--recapture likelihood}\label{capturerecapture-likelihood}
+\subsection{Capture-recapture likelihood}\label{capture-recapture-likelihood}
 
 Consider a CJS model for \(n\) individually marked animals monitored over \(T\) capture occasions. Let \(\phi_t\) denote the probability that an individual alive just after occasion \(t\) survives to occasion \(t+1\), and \(p_t\) the probability that an individual alive at occasion \(t\) is detected. Survival is related to a set of \(K\) covariates through a logit link,
 \[
 \text{logit}(\phi_t) = \mathbf{x}_t^\top \boldsymbol{\beta},
 \]
-where \(\mathbf{x}_t\) is the covariate vector (including an intercept) associated with interval \(t\) and \(\boldsymbol{\beta} = (\beta_0, \beta_1, \ldots, \beta_K)^\top\) the corresponding regression coefficients; detection is modelled separately (e.g.~constant, or with its own covariates). The CJS likelihood \(L(\boldsymbol{\beta}, \boldsymbol{p} \mid \text{data})\) is formulated as a hidden Markov model conditional on first capture. The hidden states correspond to the alive and dead states, while the observations correspond to detection or non-detection. The likelihood is evaluated efficiently using the forward algorithm {[}PLACEHOLDER: (Pradel 2005){]}.
+where \(\mathbf{x}_t\) is the covariate vector (including an intercept) associated with interval \(t\) and \(\boldsymbol{\beta} = (\beta_0, \beta_1, \ldots, \beta_K)^\top\) the corresponding regression coefficients; detection is modelled separately (e.g.~constant, or with its own covariates), and only the survival regression coefficients are subject to penalization in our approach. The CJS likelihood is formulated as a hidden Markov model conditional on first capture (\citeproc{ref-pradel2005multievent}{Pradel 2005}). The hidden states correspond to the alive and dead states, while the observations correspond to detection or non-detection. The likelihood is evaluated efficiently using the forward algorithm.
 
 \subsection{Ridge regression and the Lasso}\label{ridge-regression-and-the-lasso}
 
-Ridge regression constrains the \(L_2\) norm, \(\sum_{j=1}^K \beta_j^2 \le c\), shrinking coefficients towards zero but rarely to exactly zero. The Lasso instead constrains the \(L_1\) norm, \(\sum_{j=1}^K |\beta_j| \le c\). Geometrically, the \(L_1\) constraint region has sharp corners, so that the point where the likelihood contours first touch the constraint region often falls exactly on a corner or edge, setting the corresponding coefficient(s) to zero. This sparsity property makes the Lasso a method for simultaneous estimation and covariate selection (the intercept is left unpenalized).
+Ridge regression constrains the \(L_2\) norm, \(\sum_{j=1}^K \beta_j^2 \le c\), shrinking coefficients towards zero but rarely to exactly zero. The Lasso instead constrains the \(L_1\) norm, \(\sum_{j=1}^K |\beta_j| \le c\). In both approaches, the intercept is left unpenalized. Geometrically, the \(L_1\) constraint region has sharp corners, so that the point where the likelihood contours first touch the constraint region often falls exactly on a corner or edge, setting the corresponding coefficient(s) to zero. This sparsity property makes the Lasso a method for simultaneous estimation and covariate selection.
 
-It is convenient to rewrite the constrained optimization problem in its Lagrangian form. For a penalty parameter \(\lambda \ge 0\), the adaptive Lasso estimator maximizes
+It is convenient to rewrite the constrained optimization problem in its Lagrangian form. The adaptive Lasso extends the standard Lasso by assigning different penalty weights to individual regression coefficients. For a penalty parameter \(\lambda \ge 0\), the adaptive Lasso estimator maximizes
 
 \[
 \ell(\boldsymbol{\beta}) -
@@ -210,20 +210,20 @@ It is convenient to rewrite the constrained optimization problem in its Lagrangi
 where the adaptive weights are defined as
 
 \[
-w_j=\frac{1}{|\hat{\beta}^{\mathrm{MLE}}_j|^{\gamma}},
+w_j=\frac{1}{
+\left(\max\{|\hat{\beta}^{\mathrm{MLE}}_j|,\epsilon\}\right)^\gamma
+},
 \]
 
-with \(\hat{\beta}^{\mathrm{MLE}}_j\) denoting the unpenalized maximum-likelihood estimate from the full model and \(\gamma>0\) controlling the strength of the adaptation. Parameter \(\gamma\) is usually set to 1. Covariates with larger unpenalized effects therefore receive a smaller penalty, whereas those with weaker effects are penalized more heavily. Under suitable regularity conditions, this adaptive weighting gives the estimator the oracle property, namely consistent identification of the nonzero coefficients together with asymptotically efficient estimation of their values {[}PLACEHOLDER: (Zou 2006){]}.
-
-In our implementation, only the survival regression coefficients are penalized. The detection parameter and the intercept are left unpenalized.
+where \(\ell(\boldsymbol{\beta})\) is the likelihood function, \(\hat{\beta}^{\mathrm{MLE}}_j\) denotes the unpenalized maximum-likelihood estimate from the full model and \(\gamma>0\) controls the strength of the adaptation. The small positive constant \(\epsilon\) prevents division by zero and limits the magnitude of the adaptive weights when the unpenalized coefficient estimates are close to zero. Throughout this study, we set \(\gamma=1\) and \(\epsilon=10^{-6}\). Covariates with larger unpenalized effects therefore receive a smaller penalty, whereas those with weaker effects are penalized more heavily. Under suitable regularity conditions, including a consistent initial estimator and a penalty parameter that balances the estimation of nonzero coefficients with the elimination of zero coefficients as sample size increases, the adaptive Lasso enjoys the oracle property: consistent identification of nonzero coefficients and asymptotically efficient estimation of their values (\citeproc{ref-Zou2006}{Zou 2006}). While these theoretical guarantees do not automatically extend to CJS models, they provide a motivation for investigating the performance of the adaptive Lasso in CR settings.
 
 \subsection{Choice of the regularization parameter}\label{choice-of-the-regularization-parameter}
 
-The amount of shrinkage is controlled by the regularization parameter \(\lambda\). We evaluate a sequence of values logarithmically spaced between \(10^{-3}\) and \(10^{2}\). For each value of \(\lambda\), the adaptive Lasso optimization identifies a set of nonzero regression coefficients defining the corresponding candidate model.
+The amount of shrinkage is controlled by the regularization parameter \(\lambda\). We evaluate a sequence of 120 values logarithmically spaced between \(10^{-3}\) and \(10^4\). We assessed the adequacy of the grid by checking whether all candidate covariates were retained at its lower bound and none at its upper bound. The grid is explored in increasing order of \(\lambda\), using the estimates obtained at the preceding penalty value as starting values for the next optimization (warm starts). For each value of \(\lambda\), the adaptive Lasso optimization identifies a set of nonzero regression coefficients defining the corresponding candidate model. A penalized regression coefficient is considered equal to zero whenever its absolute value is smaller than or equal to \(10^{-3}\).
 
-Rather than comparing penalized estimates directly, we adopt a post-Lasso refit strategy. For each distinct support identified along the regularization path, the Cormack--Jolly--Seber model is refitted by maximum likelihood without penalization while retaining only the covariates selected by the adaptive Lasso. Information criteria are then computed from this unpenalized refit rather than from the penalized estimates. This approach, also referred to as post-Lasso or relaxed Lasso, substantially reduces the shrinkage bias inherent to penalized estimators while allowing candidate models to be compared using a common likelihood scale (\citeproc{ref-Meinshausen2007}{Meinshausen 2007}, \citeproc{ref-Belloni2013}{Belloni and Chernozhukov 2013}). More generally, this strategy separates variable selection from parameter estimation: the adaptive Lasso is used to identify a parsimonious set of covariates, whereas parameter estimation and model comparison rely on unpenalized maximum-likelihood estimates obtained from the selected model.
+Rather than comparing penalized estimates directly, we adopt a post-Lasso (also called relaxed Lasso) refit strategy. For each distinct support identified along the regularization path, the CJS model is refitted by maximum likelihood without penalization while retaining only the covariates selected by the adaptive Lasso. Information criteria are then computed from this unpenalized refit rather than from the penalized estimates. This approach removes the direct effect of penalization on coefficient estimates while allowing candidate models to be compared using a common likelihood scale (\citeproc{ref-Meinshausen2007}{Meinshausen 2007}, \citeproc{ref-Belloni2013}{Belloni and Chernozhukov 2013}). More generally, this strategy separates variable selection from parameter estimation: the adaptive Lasso is used to identify a parsimonious set of covariates, whereas parameter estimation and model comparison rely on unpenalized maximum-likelihood estimates obtained from the selected model.
 
-The retained model is selected by minimizing the Bayesian Information Criterion (BIC),
+The retained model is selected by minimizing the Bayesian Information Criterion (BIC)
 
 \[
 \mathrm{BIC}
@@ -232,32 +232,45 @@ The retained model is selected by minimizing the Bayesian Information Criterion 
 +
 df \log(n),
 \]
+or the Akaike Information Criterion (AIC)
 
-where \(\ell(\hat{\boldsymbol{\beta}})\) is the maximized log-likelihood of the unpenalized refitted model, \(df\) is the total number of estimated parameters in the refitted model (including both selected regression coefficients and unpenalized parameters), and \(n\) is the effective sample size. When several values of \(\lambda\) produce the same support, the corresponding model is refitted only once, thereby avoiding unnecessary computations along the regularization path. A regression coefficient is considered equal to zero whenever its absolute value is smaller than \(10^{-3}\).
+\[
+\mathrm{AIC}=-2\,\ell(\hat{\boldsymbol{\beta}}) + 2df,
+\]
 
-We prefer this grid-search/BIC strategy to \(k\)-fold cross-validation for several reasons. First, cross-validation requires refitting the entire regularization path for every fold, substantially increasing the computational cost. Second, the value of \(\lambda\) at which all penalized coefficients become zero generally differs across folds, making it difficult to define a common regularization path. Finally, because our primary objective is covariate selection rather than prediction, information criteria provide a natural and statistically principled basis for model selection.
+where \(\ell(\hat{\boldsymbol{\beta}})\) is the maximized log-likelihood of the unpenalized refitted model and \(df\) is the total number of estimated parameters in the refitted model (including both selected regression coefficients and unpenalized parameters).
+
+We prefer this information-criterion-based grid-search strategy to \(k\)-fold cross-validation which would require refitting the entire regularization path for every fold, substantially increasing the computational cost.
 
 \subsection{Implementation}\label{implementation}
 
-The CJS likelihood, the adaptive-Lasso path and the BIC-based selection are implemented in R {[}PLACEHOLDER: packages used{]}. Coefficients are considered zero below a small numerical tolerance (\(10^{-3}\) here) rather than exactly zero, as is typical of penalized likelihoods maximized with general-purpose optimizers rather than coordinate-descent algorithms {[}PLACEHOLDER: acknowledge/discuss discrepancy with true coordinate-descent Lasso solutions{]}.
+The CJS likelihood, the adaptive-Lasso path and the information-criterion-based selection are implemented in \texttt{R}. The CJS likelihood is evaluated in \texttt{C++} and interfaced with \texttt{R} using the \texttt{Rcpp} (\citeproc{ref-rcpp}{Eddelbuettel and François 2011}) and \texttt{RcppArmadillo} (\citeproc{ref-rcpparmadillo}{Eddelbuettel and Sanderson 2014}) packages. Both unpenalized and penalized likelihoods are optimized using the BFGS algorithm implemented in the \texttt{R} function \texttt{optim()}. To improve the robustness of the initial unpenalized fit, which determines the adaptive weights, we use ten different starting points and retain the solution with the highest likelihood. Subsequent penalized fits are initialized using warm starts along the regularization path.
+
+To improve numerical stability, we use the intercept-only model as a benchmark, since it is a feasible solution for any penalty value. If a penalized fit yields a non-finite or worse objective function value (beyond a numerical tolerance), optimization is restarted from the intercept-only estimates. If no solution at least as good as the benchmark is found, the intercept-only solution is retained.
 
 \section{Simulation study}\label{simulations}
 
-To evaluate the ability of the adaptive Lasso to identify the true survival covariates under a range of realistic capture--recapture settings, we conducted a factorial simulation study.
+To evaluate the ability of the adaptive Lasso to identify the true survival covariates under a range of realistic capture-recapture settings, we conducted a simulation study.
 
 \subsection{Design}\label{design}
 
-We simulated capture--recapture data under Cormack--Jolly--Seber models with 20 capture occasions and either 10 or 20 newly marked individuals per occasion. Mean survival probability was fixed at \(\bar{\phi}=0.8\), whereas detection probability took values of 0.5 or 0.9. Survival was modelled as a function of either 5 or 10 candidate covariates. In every scenario, only two covariates had a genuine effect on survival, with regression coefficients set to either \(-0.3\) or \(-0.6\) on the logit scale, while all remaining coefficients were equal to zero. This design allowed us to examine how covariate-selection performance changed as the number of candidate predictors increased while the number of truly informative predictors remained fixed. Covariates were generated either independently or with a pairwise correlation of 0.5 or 0.8, representing respectively favourable and challenging selection conditions.
+We simulated capture-recapture data under the CJS model with 20 capture occasions and either 20 or 50 newly marked individuals per occasion. Mean survival probability was fixed at \(\bar{\phi}=0.8\), whereas detection probability was constant over time and took values of 0.5 or 0.9. Survival was modelled as a function of either 5 or 10 candidate covariates. In every scenario, only two covariates had a genuine effect on survival, with regression coefficients both set to either \(-0.3\) or \(-0.6\) on the logit scale, while all remaining coefficients were equal to zero. This design allowed us to examine how covariate-selection performance changed as the number of candidate predictors increased while the number of truly informative predictors remained fixed. Covariates were generated either independently or with a pairwise correlation of 0.5 or 0.8, representing increasingly challenging conditions for covariate selection.
 
-The full factorial design comprised 48 scenarios. Each scenario was replicated 100 times, resulting in a total of 4800 simulated data sets. For each data set, the adaptive Lasso was fitted over 80 values of the regularization parameter \(\lambda\), logarithmically spaced between \(10^{-3}\) and \(10^2\), and the final model was selected using the Bayesian Information Criterion.
+The full factorial design comprised 48 scenarios. Each scenario was replicated 100 times, resulting in a total of 4800 simulated data sets.
 
 \subsection{Performance metrics}\label{performance-metrics}
 
-We assessed performance using four complementary criteria. The primary performance metric was the exact selection probability, defined as the proportion of simulation replicates in which the adaptive Lasso recovered exactly the true set of informative covariates. This criterion reflects the ability of the method to identify the correct model without either missing relevant covariates or including spurious ones. To better understand the nature of selection errors, we also calculated sensitivity, corresponding to the proportion of truly informative covariates correctly retained, and specificity, corresponding to the proportion of non-informative covariates correctly excluded. High sensitivity indicates that the method successfully detects genuine effects, whereas high specificity reflects its ability to avoid false positives. Together, these measures help distinguish between under-selection (missing relevant covariates) and over-selection (retaining unnecessary covariates). We further recorded the average number of selected covariates to assess model parsimony. This metric complements sensitivity and specificity by indicating whether the adaptive Lasso tends to favour overly complex models despite good recovery of the true effects. Finally, we measured computation time to evaluate the computational cost of the procedure and its scalability as the number of candidate covariates increased.
+Our primary performance metric was the exact selection probability, defined as the proportion of simulation replicates in which the adaptive Lasso recovered exactly the true set of active covariates. We also calculated sensitivity (the proportion of active covariates correctly retained) and specificity (the proportion of inactive covariates correctly excluded). For each replicate, we recorded the numbers of true positives, false positives and false negatives, as well as the total number of selected covariates.
+
+To assess numerical performance, we monitored convergence of the initial and final unpenalized fits and of the penalized fits along the regularization path, accounting for intercept-only fallback solutions. We also recorded computation time to assess how computational cost varied with the number of candidate covariates.
+
+To assess the influence of the simulation factors on selection performance, we fitted a binomial generalized linear model for exact selection and quasibinomial generalized linear models for sensitivity and specificity. All simulation factors were included jointly as categorical predictors. For each factor, we obtained marginal predictions and associated 95\% confidence intervals, averaging over the levels of the remaining factors. We compared BIC and AIC by summarizing selection performance across all simulation replicates.
 
 \subsection{Results}\label{results}
 
-The adaptive Lasso converged successfully for all simulated datasets. The probability of recovering the exact set of active covariates increased with the number of individuals marked per occasion, detection probability, and covariate effect magnitude. Conversely, exact selection became less likely as the number of candidate covariates and the correlation among them increased (Fig. \ref{fig:exact-selection}). These adjusted effects were estimated jointly, so the influence of each simulation factor was evaluated while averaging over the balanced levels of all remaining factors.
+All 4,800 simulation replicates were completed without computational errors. The initial and final unpenalized fits converged in all replicates, and all penalized fits either converged according to the optimizer or were assigned the intercept-only fallback solution. The upper bound of the regularization grid always yielded the intercept-only model, whereas all candidate covariates were retained at its lower bound in 85.2\% of replicates.
+
+The probability of recovering the exact set of active covariates increased with the number of individuals marked per occasion, detection probability, and covariate effect magnitude. Conversely, exact selection became less likely as the number of candidate covariates and the correlation among them increased (Fig. \ref{fig:exact-selection}). These adjusted effects were estimated jointly, so the influence of each simulation factor was evaluated while averaging over the balanced levels of all remaining factors.
 
 \begin{figure}
 
@@ -268,7 +281,7 @@ The adaptive Lasso converged successfully for all simulated datasets. The probab
 \caption{Adjusted probability of exact model selection using adaptive Lasso with BIC. Points are estimated marginal probabilities from a binomial generalized linear model, adjusted for the other simulation factors; vertical bars are 95\% confidence intervals.}\label{fig:exact-selection}
 \end{figure}
 
-The adaptive Lasso tuned using BIC generally behaved conservatively. Specificity remained high across the simulation design, indicating that inactive covariates were rarely retained, whereas sensitivity was more strongly affected by the amount of information in the data (Fig. \ref{fig:senspec}). Thus, under difficult sampling conditions, failures of exact model recovery were driven more often by omission of active covariates than by extensive inclusion of inactive covariates.
+The adaptive Lasso tuned using BIC generally behaved conservatively. Specificity remained high across the simulation design, indicating that inactive covariates were rarely retained, whereas sensitivity was more strongly affected by the amount of information in the data (Fig. \ref{fig:senspec}). Thus, under difficult sampling conditions, failures of exact model recovery were driven more often by omission of active covariates than by extensive inclusion of inactive covariates. Increasing correlation among covariates led to both more false negatives and more false positives, particularly when genuine effects were weak.
 
 \begin{figure}
 
@@ -279,19 +292,21 @@ The adaptive Lasso tuned using BIC generally behaved conservatively. Specificity
 \caption{Adjusted sensitivity and specificity of adaptive-Lasso selection using BIC. Estimates are marginal predictions from quasibinomial generalized linear models, adjusted for the other simulation factors; vertical bars are 95\% confidence intervals.}\label{fig:senspec}
 \end{figure}
 
-Across all simulation scenarios, BIC recovered the exact model in 59.8\% of datasets, with mean sensitivity 0.797, mean specificity 0.954, and a mean selected model size of 1.86 covariates. The corresponding values under AIC were 38.2\%, 0.884, 0.810, and 2.84, respectively.
+Across all simulation scenarios, BIC recovered the exact model in 60.2\% of datasets, with mean sensitivity 0.808, mean specificity 0.948, and a mean selected model size of 1.92 covariates. The corresponding values under AIC were 38.2\%, 0.886, 0.808, and 2.85, respectively. On average, using AIC instead of BIC led to the inclusion of 0.16 additional active covariates but also 0.78 additional inactive covariates per simulated dataset.
 
-AIC therefore increased sensitivity relative to BIC but reduced specificity and selected larger models. Because the objective was identification of a parsimonious set of relevant covariates rather than maximization of predictive performance, BIC offered the more appropriate compromise between detecting active effects and limiting false discoveries.
+AIC therefore increased sensitivity relative to BIC but reduced specificity and selected larger models. Under the conditions investigated, BIC therefore offered a better compromise when the objective was to recover the true set of active covariates.
+
+The median computation time per regularization path, including unpenalized refitting, was 1.94 seconds, increasing from 1.32 seconds with five candidate covariates to 2.65 seconds with ten.
 
 \section{Case study: white stork survival and Sahelian rainfall}\label{case-study}
 
-We illustrate the proposed methodology using a long-term capture--recapture study of white storks (\emph{Ciconia ciconia}) breeding in France {[}PLACEHOLDER: study area and reference{]}. The data span 16 years and include more than 200 individually marked adults.
+We illustrate the proposed methodology using a long-term capture-recapture study of white storks (\emph{Ciconia ciconia}) breeding in France (\citeproc{ref-grosbois2008assessing}{Grosbois et al. 2008}). The data span 16 years and include more than 200 individually marked adults.
 
-Most French white storks winter in the Sahel, where annual rainfall strongly influences primary productivity and food availability. Previous studies have therefore suggested that climatic conditions in the Sahel may affect annual adult survival. To investigate this hypothesis, we considered annual rainfall measured at ten meteorological stations distributed across the Sahel as candidate covariates for survival. Detection probability was modelled with an intercept only.
+Most French white storks winter in the Sahel, where annual rainfall strongly influences primary productivity and food availability. Previous studies have therefore suggested that climatic conditions in the Sahel may affect annual adult survival. To investigate this hypothesis, we considered annual rainfall measured at ten meteorological stations distributed across the Sahel as candidate covariates for survival. Pairwise Pearson correlations among the ten covariates ranged from -0.32 to 0.62. Detection probability was modelled with an intercept only.
 
-We fitted the full survival model including all ten rainfall covariates and computed the adaptive Lasso solution path over the regularization grid described above. The optimal model was selected using the Bayesian Information Criterion.
+We fitted the full survival model including all ten rainfall covariates and computed the adaptive Lasso solution path over the regularization grid described above. The optimal model was selected using the BIC computed from unpenalized refits of the candidate models identified along the path.
 
-The BIC reached its minimum for a penalty value of approximately \(\lambda = 8.4\) (Fig. \ref{fig:bic-path}). The regularization parameter is shown on a logarithmic scale.
+The BIC reached its minimum for a penalty value of approximately \(\lambda = 11.4\) (Fig. \ref{fig:bic-path}). The regularization parameter is shown on a logarithmic scale. Several penalty values may correspond to the same selected model and therefore yield identical BIC values.
 
 \begin{figure}
 
@@ -299,12 +314,10 @@ The BIC reached its minimum for a penalty value of approximately \(\lambda = 8.4
 
 }
 
-\caption{Bayesian Information Criterion as a function of the regularization parameter $\lambda$ for the white stork survival model. The horizontal axis is displayed on a logarithmic scale. The vertical dashed line indicates the value of $\lambda$ minimizing the BIC.}\label{fig:bic-path}
+\caption{Bayesian Information Criterion as a function of the regularization parameter $\lambda$ for the white stork survival model. The horizontal axis is displayed on a logarithmic scale. The vertical dashed line indicates a value of $\lambda$ yielding the minimum BIC.}\label{fig:bic-path}
 \end{figure}
 
-The coefficient paths (Fig. \ref{fig:coef-path}) show the progressive
-shrinkage of the rainfall effects as the penalty increases. The regularization
-parameter is displayed on a logarithmic scale.
+The coefficient paths (Fig. \ref{fig:coef-path}) show the progressive shrinkage of the rainfall effects as the penalty increases. The regularization parameter is displayed on a logarithmic scale.
 
 \begin{figure}
 
@@ -315,7 +328,7 @@ parameter is displayed on a logarithmic scale.
 \caption{Regularization paths for the ten rainfall coefficients as a function of the penalty parameter $\lambda$. The horizontal axis is displayed on a logarithmic scale. The vertical dashed line indicates the value of $\lambda$ selected by the Bayesian Information Criterion.}\label{fig:coef-path}
 \end{figure}
 
-At the selected value of \(\lambda\), only one rainfall covariate, corresponding to the meteorological station of Kita, retained a nonzero coefficient, whereas the remaining nine coefficients were shrunk to zero (Table \ref{tab:coef-table}). The estimated effect of rainfall at Kita was positive, indicating higher apparent survival in wetter years. This result agrees with earlier analyses of these data, which identified the same geographical region as the main climatic driver of survival after reducing the rainfall variables by principal component analysis {[}PLACEHOLDER: reference{]}.
+At the selected value of \(\lambda\), only one rainfall covariate, corresponding to the meteorological station of Kita, retained a nonzero coefficient, whereas the remaining nine coefficients were classified as zero (Table \ref{tab:coef-table}). The estimated effect of rainfall at Kita was positive, indicating higher apparent survival in wetter years. This result agrees with earlier analyses of these data, which identified the same geographical region as the main climatic driver of survival after reducing the rainfall variables by principal component analysis (\citeproc{ref-grosbois2008assessing}{Grosbois et al. 2008}).
 
 \begin{table}
 
@@ -325,58 +338,102 @@ At the selected value of \(\lambda\), only one rainfall covariate, corresponding
 \toprule
 Parameter & Estimate & Selected\\
 \midrule
-Survival intercept & 0.6755 & Yes\\
-Diourbel & 0.0007 & No\\
-Gao & 0.0003 & No\\
+Survival intercept & 0.6812 & Yes\\
+Diourbel & 0.0000 & No\\
+Gao & 0.0000 & No\\
 Kayes & 0.0000 & No\\
-Kita & 0.1757 & Yes\\
+Kita & 0.3572 & Yes\\
 \addlinespace
-Maradi & -0.0002 & No\\
-Mopti & 0.0008 & No\\
-Ouahigouya & -0.0001 & No\\
-Segou & 0.0001 & No\\
-Tahoua & 0.0004 & No\\
+Maradi & 0.0000 & No\\
+Mopti & 0.0000 & No\\
+Ouahigouya & 0.0000 & No\\
+Segou & 0.0000 & No\\
+Tahoua & 0.0000 & No\\
 \addlinespace
 Tombouctou & 0.0000 & No\\
-Detection intercept & 2.3743 & Yes\\
+Detection intercept & 2.3696 & Yes\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \section{Discussion}\label{discussion}
 
-We have shown that the (adaptive) Lasso, applied directly to the CJS likelihood, provides an effective alternative to information-criterion-based or Bayesian variable-selection procedures for covariate selection in CR survival models. {[}PLACEHOLDER: develop a bit{]}.
+We have shown that the adaptive Lasso can be applied directly to the CJS likelihood to perform covariate selection in CR survival models. This approach provides a framework for identifying environmental drivers of demographic variation while accounting for imperfect detection, without explicitly enumerating the entire set of candidate models. Our simulations highlighted the importance of the choice of information criterion, sampling design, and covariate characteristics for successful covariate selection.
 
-A key advantage of working directly at the likelihood level is that the approach generalizes readily to CR models with several linked sets of parameters -- for instance multistate models (survival, detection, transition probabilities) or multievent models with additional latent-state parameters -- where combinatorial model selection across parameter sets is particularly cumbersome (which set of covariates to test first, and in which order?). The Lasso sidesteps this question entirely by penalizing all parameter sets jointly within a single model fit. Modifying existing CR software to implement a penalized likelihood is comparatively straightforward, which suggests the approach could in time be incorporated into standard CR platforms (e.g.~MARK, \texttt{unmarked}, E-SURGE).
+The choice of information criterion for selecting models along the regularization path influenced covariate-selection performance. Compared with BIC, AIC increased the probability of retaining active covariates but also increased the probability of retaining inactive ones. In our simulations, the gains in sensitivity achieved by AIC were modest relative to the increase in the number of false positives. Consequently, despite its higher sensitivity, AIC was less successful than BIC at recovering the exact set of active covariates. The choice between these criteria should therefore reflect the objectives of the analysis and the relative consequences of false-positive and false-negative selections. BIC may be preferable when identifying a parsimonious set of predictors is the primary objective, whereas AIC may be useful when overlooking potentially relevant covariates is of greater concern.
 
-Several limitations remain. First, our current implementation does not provide confidence intervals or significance tests for the selected coefficients; the bootstrap is a natural solution but increases computation time substantially, and its performance under adaptive-Lasso shrinkage remains to be characterized. Second, we focused on continuous, purely temporal covariates; when covariates are categorical (e.g.~age class or discrete time effects), one is often not interested in the effect of a single level but in the effect of the \emph{factor as a whole}, which the plain Lasso does not handle naturally -- the group Lasso, which penalizes and selects groups of coefficients jointly, is a natural extension we are currently exploring. Third, our optimizer (\texttt{optim()}) yields coefficients that are shrunk close to, but not always exactly at, zero, unlike coordinate-descent algorithms designed specifically for the Lasso; a numerical zero-tolerance threshold is used here as a practical workaround, but implementing a dedicated descent algorithm (requiring the CJS score equations) would be a cleaner long-term solution {[}PLACEHOLDER: decide whether to keep this as a stated limitation or to actually implement it before submission{]}.
+Our results highlight the importance of sampling design for the identification of environmental drivers of demographic variation. The probability of recovering the true set of covariates increased with both the number of newly marked individuals and detection probability. The ability to identify ecological relationships depends not only on the magnitude of the underlying effects but also on the amount of information available to estimate demographic parameters while accounting for imperfect detection (\citeproc{ref-grosbois2008assessing}{Grosbois et al. 2008}). For purely temporal covariates, however, increasing the number of marked individuals does not increase the number of independent temporal contrasts available to estimate covariate effects (\citeproc{ref-frederiksen2014}{Frederiksen et al. 2014}). Increasing sampling effort and extending the duration of monitoring programmes may therefore play complementary roles in improving covariate selection.
 
-Finally, penalized-likelihood approaches related to the Lasso already exist for occupancy models, and we see an opportunity to connect that literature with the CR setting explored here, including a Bayesian formulation of the shrinkage prior underlying the Lasso {[}PLACEHOLDER: shall we mention the double Laplace?{]}.
+A key advantage of working directly at the likelihood level is that the approach could be extended to CR models with several linked sets of parameters; for instance multistate models (survival, detection, transition probabilities) or multievent models with additional latent-state parameters (\citeproc{ref-gimenezBayesianAnalysisCapturerecapture2026}{Gimenez 2026}). In such models, conventional stepwise model selection is cumbersome because of the large number of candidate models and the dependence of selection outcomes on the order in which parameter sets are considered. Penalized likelihood offers a way to address this problem by jointly selecting covariates across parameter sets, using parameter-specific penalty strengths. How to tune these penalties efficiently remains an avenue for future research.
 
-\section{Acknowledgments}\label{acknowledgments}
+Several limitations remain. First, covariate correlation was an important determinant of selection performance. Under strong collinearity, the adaptive Lasso was less successful at recovering the true set of active covariates, with both false-positive and false-negative selections. Penalized variable selection therefore does not remove the need for ecological reasoning and careful examination of covariate dependence. The elastic net (\citeproc{ref-elasticnet}{Zou and Hastie 2005}), which combines \(L_1\) and \(L_2\) penalties, may be useful in such situations, although whether its tendency to retain correlated predictors improves the recovery of active covariates remains an open question. Second, we focused on continuous temporal covariates. For categorical covariates (e.g.~age class or discrete time effects), interest often lies in the effect of the factor as a whole rather than that of individual levels. The group Lasso (\citeproc{ref-yuan2006model}{Yuan and Lin 2006}), which penalizes and selects groups of coefficients jointly, is a natural extension that we are currently exploring. Third, our general-purpose optimization routine requires a numerical threshold to identify zero coefficients and does not guarantee optimal solutions along the entire regularization path. Although the intercept-only model was recovered in all simulation replicates, the full model was not always recovered at the lower bound of the regularization grid. This may reflect residual shrinkage, numerical thresholding or optimization limitations. Dedicated algorithms for non-smooth optimization, such as proximal-gradient methods, could improve the accuracy and computational efficiency of the approach.
 
-{[}PLACEHOLDER: Folks Euring and ISEC conferences{]}
+Overall, the adaptive Lasso and penalization procedures in general provide a promising alternative to conventional model selection for investigating environmental correlates of demographic variation in CR studies. As ecological questions increasingly involve multiple candidate predictors and complex demographic models, integrating covariate selection into the likelihood-based estimation framework offers opportunities to make these analyses more tractable.
 
 \subsection{Data availability statement}\label{data-availability-statement}
 
 {[}PLACEHOLDER: per JSE guidelines, code and data (or a fully reproducible simulated look-alike dataset) must be archived, e.g.~on GitHub/Zenodo, with an anonymized link at submission for double-blind review -- see \url{https://anonymous.4open.science/}.{]}
 
-\subsection{Funding statement}\label{funding-statement}
-
-{[}PLACEHOLDER: Ian, maybe the grant you got for your sabbatical visits in France?{]}
-
 \section{References}\label{references}
 
-\phantomsection\label{refs}
+\protect\phantomsection\label{refs}
 \begin{CSLReferences}{1}{0}
 \bibitem[\citeproctext]{ref-Belloni2013}
 Belloni, A., and V. Chernozhukov. 2013. Least squares after model selection in high-dimensional sparse models. Bernoulli 19:521--547.
+
+\bibitem[\citeproctext]{ref-burnham2002}
+Burnham, K. P., and D. R. Anderson. 2002. Model selection and multimodel inference: A practical information-theoretic approach. Second edition. Springer, New York, NY.
+
+\bibitem[\citeproctext]{ref-clipp2021}
+Clipp, H. L., A. L. Evans, B. E. Kessinger, K. Kellner, and C. T. Rota. 2021. \href{https://doi.org/10.1002/ecy.3520}{A penalized likelihood for multispecies occupancy models improves predictions of species interactions}. Ecology 102:e03520.
+
+\bibitem[\citeproctext]{ref-rcpp}
+Eddelbuettel, D., and R. François. 2011. \href{https://doi.org/10.18637/jss.v040.i08}{{Rcpp}: Seamless {R} and {C++} integration}. Journal of Statistical Software 40:1--18.
+
+\bibitem[\citeproctext]{ref-rcpparmadillo}
+Eddelbuettel, D., and C. Sanderson. 2014. RcppArmadillo: Accelerating r with high-performance c++ linear algebra. Computational Statistics and Data Analysis 71.
+
+\bibitem[\citeproctext]{ref-frederiksen2014}
+Frederiksen, M., J.-D. Lebreton, R. Pradel, R. Choquet, and O. Gimenez. 2014. \href{https://doi.org/10.1111/1365-2664.12172}{Identifying links between vital rates and environment: A toolbox for the applied ecologist}. Journal of Applied Ecology 51:71--81.
+
+\bibitem[\citeproctext]{ref-gimenezBayesianAnalysisCapturerecapture2026}
+Gimenez, O. 2026. Bayesian analysis of capture-recapture data with hidden {Markov} models: {Theory} and case studies in {R} and {NIMBLE}. Chapman \& Hall/CRC Interdisciplinary Statistics series.
+
+\bibitem[\citeproctext]{ref-gimenez2014}
+Gimenez, O., \{Stephen. T. \}. Buckland, \{Byron. J. T. \}. Morgan, N. Bez, S. Bertrand, R. Choquet, S. Dray, M.-P. Etienne, R. Fewster, F. Gosselin, B. Mérigot, P. Monestiez, \{Juan. M. \}. Morales, F. Mortier, F. Munoz, O. Ovaskainen, S. Pavoine, R. Pradel, \{Frank. M. \}. Schurr, L. Thomas, W. Thuiller, V. Trenkel, P. \{de Valpine\}, and E. Rexstad. 2014. Statistical ecology comes of age. Biology Letters 10.
+
+\bibitem[\citeproctext]{ref-grosbois2008assessing}
+Grosbois, V., O. Gimenez, J.-M. Gaillard, R. Pradel, C. Barbraud, J. Clobert, A. P. Møller, and H. Weimerskirch. 2008. \href{https://doi.org/10.1111/j.1469-185X.2008.00047.x}{Assessing the impact of climate variation on survival in vertebrate populations}. Biological Reviews 83:357--399.
+
+\bibitem[\citeproctext]{ref-hooten2015}
+Hooten, M. B., and N. T. Hobbs. 2015. \href{https://doi.org/10.1890/14-0661.1}{A guide to bayesian model selection for ecologists}. Ecological Monographs 85:3--28.
+
+\bibitem[\citeproctext]{ref-hutchinson2015}
+Hutchinson, R. A., J. J. Valente, S. C. Emerson, M. G. Betts, and T. G. Dietterich. 2015. \href{https://doi.org/10.1111/2041-210X.12368}{Penalized likelihood methods improve parameter estimates in occupancy models}. Methods in Ecology and Evolution 6:949--959.
 
 \bibitem[\citeproctext]{ref-Lebreton1992}
 Lebreton, J.-D., K. P. Burnham, J. Clobert, and D. R. Anderson. 1992. \href{https://doi.org/10.2307/2937171}{Modeling survival and testing biological hypotheses using marked animals: A unified approach with case studies}. Ecological Monographs 62:67--118.
 
 \bibitem[\citeproctext]{ref-Meinshausen2007}
 Meinshausen, N. 2007. Relaxed lasso. Computational Statistics \& Data Analysis 52:374--393.
+
+\bibitem[\citeproctext]{ref-pradel2005multievent}
+Pradel, R. 2005. \href{https://doi.org/10.1111/j.1541-0420.2005.00318.x}{Multievent: An extension of multistate capture--recapture models to uncertain states}. Biometrics 61:442--447.
+
+\bibitem[\citeproctext]{ref-tibshilasso}
+Tibshirani, R. 1996. Regression shrinkage and selection via the lasso. Journal of the Royal Statistical Society: Series B (Methodological) 58:267--288.
+
+\bibitem[\citeproctext]{ref-tredennick2021}
+Tredennick, A. T., G. Hooker, S. P. Ellner, and P. B. Adler. 2021. \href{https://doi.org/10.1002/ecy.3336}{A practical guide to selecting models for exploration, inference, and prediction in ecology}. Ecology 102:e03336.
+
+\bibitem[\citeproctext]{ref-yuan2006model}
+Yuan, M., and Y. Lin. 2006. \href{https://doi.org/10.1111/j.1467-9868.2005.00532.x}{Model selection and estimation in regression with grouped variables}. Journal of the Royal Statistical Society Series B: Statistical Methodology 68:49--67.
+
+\bibitem[\citeproctext]{ref-Zou2006}
+Zou, H. 2006. \href{http://www.jstor.org/stable/27639762}{The adaptive lasso and its oracle properties}. Journal of the American Statistical Association 101:1418--1429.
+
+\bibitem[\citeproctext]{ref-elasticnet}
+Zou, H., and T. Hastie. 2005. Regularization and variable selection via the elastic net. Journal of the Royal Statistical Society Series B: Statistical Methodology 67:301--320.
 
 \end{CSLReferences}
 

@@ -14,21 +14,21 @@ library(RcppArmadillo)
 # Compile and load the C++ likelihood
 # -------------------------------------------------------------------------
 
-Rcpp::sourceCpp("R/cjs_likelihood.cpp")
+Rcpp::sourceCpp("code/simulations/R/cjs_likelihood.cpp")
 
 # -------------------------------------------------------------------------
 # Load functions
 # -------------------------------------------------------------------------
 
-source("R/cjs_likelihood_rcpp.R")
-source("R/fit_adaptive_lasso_rcpp.R")
-source("R/plotting.R")
+source("code/simulations/R/cjs_likelihood_rcpp.R")
+source("code/simulations/R/fit_adaptive_lasso_rcpp.R")
+source("code/simulations/R/plotting.R")
 
 # -------------------------------------------------------------------------
 # Load and prepare data
 # -------------------------------------------------------------------------
 
-load("dat/whitestork.RData")
+load("code/case_study/dat/whitestork.RData")
 
 # The object `data` contains:
 # - one row per unique encounter history;
@@ -42,10 +42,46 @@ encounter_histories <- as.matrix(data[, -ncol(data), drop = FALSE])
 frequencies <- data[, ncol(data)]
 
 covariates <- as.matrix(cov)
+apply(covariates, 2, mean)
+apply(covariates, 2, sd)
+
 
 if (is.null(colnames(covariates))) {
   colnames(covariates) <- paste0("station_", seq_len(ncol(covariates)))
 }
+
+# -------------------------------------------------------------------------
+# Correlation among climatic covariates
+# -------------------------------------------------------------------------
+
+# Compute Pearson correlation matrix
+cor_matrix <- cor(covariates, method = "pearson")
+
+# Display correlation matrix
+round(cor_matrix, 2)
+
+# Extract unique pairwise correlations
+pairwise_cor <- cor_matrix[upper.tri(cor_matrix)]
+
+# Proportion of strongly correlated pairs
+mean(abs(pairwise_cor) >= 0.5)
+mean(abs(pairwise_cor) >= 0.8)
+
+# Identify the most strongly correlated pairs of stations
+idx <- which(upper.tri(cor_matrix), arr.ind = TRUE)
+
+cor_pairs <- data.frame(
+  station1 = rownames(cor_matrix)[idx[, 1]],
+  station2 = colnames(cor_matrix)[idx[, 2]],
+  correlation = cor_matrix[idx]
+)
+
+cor_pairs <- cor_pairs[
+  order(abs(cor_pairs$correlation), decreasing = TRUE),
+]
+
+head(cor_pairs, 10)
+
 
 # Survival design matrix: intercept and climatic covariates
 X_phi <- cbind(
@@ -112,11 +148,19 @@ unpenalised_parameters <- c(
 #   )
 # )
 
+# lambda_grid <- exp(
+#   seq(
+#     log(1e-3),
+#     log(100),
+#     length.out = 150
+#   )
+# )
+
 lambda_grid <- exp(
   seq(
     log(1e-3),
-    log(100),
-    length.out = 150
+    log(1e4),
+    length.out = 120
   )
 )
 
@@ -144,12 +188,28 @@ lasso_path <- fit_adaptive_lasso(
   )
 )
 
-if (any(lasso_path$convergence != 0L)) {
-  warning(
-    sum(lasso_path$convergence != 0L),
-    " fits along the regularisation path did not converge."
-  )
+# Optimisation diagnostics
+print(table(lasso_path$convergence))
+
+cat(
+  "Null-model restarts:",
+  sum(lasso_path$null_restart),
+  "\n"
+)
+
+cat(
+  "Non-monotonic steps:",
+  sum(diff(lasso_path$penalised_objective) < -1e-4),
+  "\n"
+)
+
+# Genuine optimisation failures
+n_fail <- sum(!lasso_path$convergence %in% c(0L, 99L))
+
+if (n_fail > 0L) {
+  warning(n_fail, " optimisation failures along the path.")
 }
+
 
 # -------------------------------------------------------------------------
 # Select lambda using BIC
@@ -202,6 +262,18 @@ if (nrow(selected_covariates) == 0L) {
   )
 }
 
+diagnostics <- data.frame(
+  n_lambda = length(lambda_grid),
+  n_converged = sum(lasso_path$convergence == 0L),
+  n_null_fallback = sum(lasso_path$convergence == 99L),
+  n_null_restart = sum(lasso_path$null_restart),
+  n_nonmonotonic = sum(
+    diff(lasso_path$penalised_objective) < -1e-4
+  )
+)
+
+print(diagnostics)
+
 # -------------------------------------------------------------------------
 # Plots
 # -------------------------------------------------------------------------
@@ -232,7 +304,8 @@ saveRDS(
     full_fit = full_fit,
     lasso_path = lasso_path,
     selected_fit = selected_fit,
-    coefficient_table = coefficient_table
+    coefficient_table = coefficient_table,
+    diagnostics = diagnostics
   ),
   file = "whitestork_lasso_results.rds"
 )
@@ -242,3 +315,5 @@ utils::write.csv(
   file = "whitestork_lasso_coefficients.csv",
   row.names = FALSE
 )
+
+

@@ -153,31 +153,119 @@ cjs_penalised_nll <- function(par, cjs_data, penalty_factor) {
 
 
 #' Fit an unpenalised CJS model
+
 fit_cjs <- function(
     cjs_data,
     initial = NULL,
     method = "BFGS",
     control = list(),
-    hessian = FALSE) {
-
+    hessian = FALSE,
+    n_starts = 5L,
+    start_scale = 0.5) {
+  
   n_parameters <- cjs_data$n_phi_parameters + 1L
-  if (is.null(initial)) initial <- rep(0, n_parameters)
-
-  fit <- stats::optim(
-    par = initial,
-    fn = cjs_nll,
-    cjs_data = cjs_data,
-    method = method,
-    hessian = hessian,
-    control = control
+  
+  if (is.null(initial)) {
+    initial <- rep(0, n_parameters)
+  }
+  
+  stopifnot(length(initial) == n_parameters)
+  stopifnot(all(is.finite(initial)))
+  stopifnot(n_starts >= 1L)
+  
+  # First start: supplied initial values
+  starts <- list(as.numeric(initial))
+  
+  # Additional deterministic starting points
+  if (n_starts > 1L) {
+    starts[[2L]] <- rep(0, n_parameters)
+  }
+  
+  if (n_starts > 2L) {
+    for (j in seq.int(3L, n_starts)) {
+      perturbation <- start_scale *
+        sin(seq_len(n_parameters) * (j - 1L))
+      
+      starts[[j]] <- as.numeric(initial) + perturbation
+    }
+  }
+  
+  # Fit from each starting point
+  fits <- lapply(starts, function(start) {
+    tryCatch(
+      stats::optim(
+        par = start,
+        fn = cjs_nll,
+        cjs_data = cjs_data,
+        method = method,
+        hessian = FALSE,
+        control = control
+      ),
+      error = function(e) NULL
+    )
+  })
+  
+  # Keep finite, converged solutions
+  valid <- which(vapply(
+    fits,
+    function(fit) {
+      !is.null(fit) &&
+        is.finite(fit$value) &&
+        all(is.finite(fit$par)) &&
+        fit$convergence == 0L
+    },
+    logical(1)
+  ))
+  
+  if (!length(valid)) {
+    stop("No converged CJS fit among the starting points.")
+  }
+  
+  values <- vapply(
+    fits[valid],
+    function(fit) fit$value,
+    numeric(1)
   )
-
-  parameter_names <- c(colnames(cjs_data$X_phi), "p_(Intercept)")
+  
+  best_index <- valid[which.min(values)]
+  fit <- fits[[best_index]]
+  
+  # Optional Hessian at the selected optimum
+  if (hessian) {
+    fit$hessian <- stats::optimHess(
+      par = fit$par,
+      fn = cjs_nll,
+      cjs_data = cjs_data
+    )
+  }
+  
+  parameter_names <- c(
+    colnames(cjs_data$X_phi),
+    "p_(Intercept)"
+  )
+  
   names(fit$par) <- parameter_names
+  
   fit$logLik <- -fit$value
   fit$n_parameters <- n_parameters
+  
   fit$AIC <- 2 * fit$value + 2 * n_parameters
-  fit$BIC <- 2 * fit$value + log(cjs_data$effective_sample_size) * n_parameters
+  fit$BIC <- 2 * fit$value +
+    log(cjs_data$effective_sample_size) * n_parameters
+  
+  # Additional diagnostics
+  fit$n_starts <- length(starts)
+  fit$best_start <- best_index
+  fit$start_values <- vapply(
+    fits,
+    function(x) {
+      if (is.null(x)) NA_real_ else x$value
+    },
+    numeric(1)
+  )
+  
   class(fit) <- c("cjs_fit", class(fit))
+  
   fit
 }
+

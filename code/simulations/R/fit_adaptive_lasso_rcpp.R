@@ -20,9 +20,14 @@ adaptive_lasso_weights <- function(
 
 #' Fit an adaptive-Lasso regularisation path
 #'
-#' Information criteria are computed from the unpenalised likelihood evaluated
-#' at the penalised estimates. Coefficients smaller than `zero_tolerance` are
-#' treated as zero when counting effective parameters.
+#' Information criteria are computed in two ways:
+#' - AIC_penalised and BIC_penalised use the unpenalised likelihood
+#'   evaluated at the penalised estimates.
+#' - AIC and BIC use the unpenalised likelihood after post-Lasso
+#'   refitting of the selected model.
+#' Model selection is based on the post-Lasso BIC.
+#' Coefficients smaller than zero_tolerance are treated as zero
+#' when determining the selected model.
 fit_adaptive_lasso <- function(
     cjs_data,
     lambda = NULL,
@@ -35,7 +40,13 @@ fit_adaptive_lasso <- function(
     method = "BFGS",
     control = list(maxit = 1000, reltol = 1e-10)) {
 
-  full_fit <- fit_cjs(cjs_data, method = method, control = control)
+  full_fit <- fit_cjs(
+    cjs_data,
+    method = method,
+    control = control,
+    n_starts = 10L,
+    start_scale = 1
+  )
   weights <- adaptive_lasso_weights(
     full_fit,
     unpenalised = unpenalised,
@@ -56,9 +67,37 @@ fit_adaptive_lasso <- function(
   penalised_objective <- unpenalised_nll <- rep(NA_real_, length(lambda))
   convergence <- rep(NA_integer_, length(lambda))
 
+  # Fit the null model once (unpenalised parameters only)
+  null_indices <- which(weights == 0)
+  
+  null_fit <- refit_cjs_support(
+    cjs_data = cjs_data,
+    selected_indices = null_indices,
+    initial = full_fit$par,
+    method = method,
+    control = control
+  )
+  
+  stopifnot(null_fit$convergence == 0L)
+
+  # Expand null estimates to the full parameter vector
+  beta_null <- rep(0, n_parameters)
+  beta_null[null_indices] <- null_fit$par
+  
+  # Null model has zero L1 penalty
+  null_objective <- cjs_nll(beta_null, cjs_data)
+  
+  # Diagnostics
+  null_restart <- rep(FALSE, length(lambda))
+  
+  
   current <- full_fit$par
+  
   for (j in seq_along(lambda)) {
+    
     penalty_factor <- lambda[j] * weights
+    
+    # Standard warm-start optimisation
     fit <- stats::optim(
       par = current,
       fn = cjs_penalised_nll,
@@ -67,22 +106,48 @@ fit_adaptive_lasso <- function(
       method = method,
       control = control
     )
-
+    
+    # Check against the null model
+    if (!is.finite(fit$value) ||
+        fit$value > null_objective + 1e-8) {
+      
+      # Retry from the null model
+      fit_null <- stats::optim(
+        par = beta_null,
+        fn = cjs_penalised_nll,
+        cjs_data = cjs_data,
+        penalty_factor = penalty_factor,
+        method = method,
+        control = control
+      )
+      
+      # Retain the best candidate
+      if (is.finite(fit_null$value) &&
+          (!is.finite(fit$value) ||
+           fit_null$value < fit$value)) {
+        fit <- fit_null
+      }
+      
+      null_restart[j] <- TRUE
+    }
+    
+    # Ensure that the null candidate is never worse
+    if (!is.finite(fit$value) ||
+        fit$value > null_objective) {
+      
+      fit$par <- beta_null
+      fit$value <- null_objective
+      fit$convergence <- 99L
+    }
+    
     current <- fit$par
+    
     coefficients[, j] <- fit$par
     penalised_objective[j] <- fit$value
     unpenalised_nll[j] <- cjs_nll(fit$par, cjs_data)
     convergence[j] <- fit$convergence
   }
-
-  # penalised_indices <- setdiff(seq_len(n_parameters), unpenalised)
-  # n_selected <- colSums(abs(coefficients[penalised_indices, , drop = FALSE]) > zero_tolerance)
-  # n_effective <- length(unpenalised) + n_selected
-  # sample_size <- cjs_data$effective_sample_size
-  # 
-  # AIC <- 2 * unpenalised_nll + 2 * n_effective
-  # BIC <- 2 * unpenalised_nll + log(sample_size) * n_effective
-
+  
   penalised_indices <- setdiff(
     seq_len(n_parameters),
     unpenalised
@@ -175,7 +240,10 @@ fit_adaptive_lasso <- function(
     
     convergence = convergence,
     unpenalised = unpenalised,
-    zero_tolerance = zero_tolerance
+    zero_tolerance = zero_tolerance,
+    
+    null_objective = null_objective,
+    null_restart = null_restart
   )
   
   class(out) <- "adaptive_lasso_cjs"
@@ -288,6 +356,7 @@ refit_cjs_support <- function(
     cjs_data = reduced_data,
     initial = initial,
     method = method,
-    control = control
+    control = control,
+    n_starts = 1L
   )
 }

@@ -7,8 +7,8 @@
 library(tidyverse)
 library(emmeans)
 
-bic_file <- "BIC/scenario_grid_results_BIC.csv"
-aic_file <- "AIC/scenario_grid_results_AIC.csv"
+bic_file <- "code/simulations/BIC/scenario_grid_results_BIC.csv"
+aic_file <- "code/simulations/AIC/scenario_grid_results_AIC.csv"
 
 read_results <- function(path, expected_criterion) {
   if (!file.exists(path)) stop("File not found: ", path)
@@ -406,3 +406,99 @@ print(criterion_comparison)
 #   "table_AIC_BIC_comparison.csv",
 #   row.names = FALSE
 # )
+
+
+
+
+
+library(tidyverse)
+
+bic_file <- "code/simulations/BIC/scenario_grid_results_BIC.csv"
+aic_file <- "code/simulations/AIC/scenario_grid_results_AIC.csv"
+
+read_results <- function(path, expected_criterion) {
+  
+  if (!file.exists(path))
+    stop("File not found: ", path)
+  
+  out <- read.csv(
+    path,
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  
+  required <- c(
+    "scenario_id", "replicate", "n_occasions",
+    "marked", "p", "effect_size",
+    "n_covariates", "correlation",
+    "exact_selection", "n_selected",
+    "true_positives", "false_positives",
+    "false_negatives", "true_negatives",
+    "sensitivity", "specificity", "convergence"
+  )
+  
+  absent <- setdiff(required, names(out))
+  
+  if (length(absent)) {
+    stop(
+      path, " is missing: ",
+      paste(absent, collapse = ", ")
+    )
+  }
+  
+  if ("criterion" %in% names(out)) {
+    stopifnot(
+      all(toupper(out$criterion) == expected_criterion)
+    )
+  }
+  
+  stopifnot(
+    nrow(out) == 4800,
+    length(unique(out$scenario_id)) == 48,
+    all(table(out$scenario_id) == 100),
+    !anyDuplicated(out[c("scenario_id", "replicate")]),
+    all(out$convergence == 0L)
+  )
+  
+  out |>
+    mutate(
+      occasions = factor(n_occasions, levels = 20),
+      individuals = factor(marked, levels = c(20, 50)),
+      detectability = factor(p, levels = c(0.5, 0.9)),
+      effect = factor(effect_size, levels = c(-0.3, -0.6)),
+      candidates = factor(n_covariates, levels = c(5, 10)),
+      correlation_factor = factor(
+        correlation,
+        levels = c(0, 0.5, 0.8)
+      )
+    )
+}
+
+bic <- read_results(bic_file, "BIC")
+aic <- read_results(aic_file, "AIC")
+
+
+criterion_comparison <- bind_rows(
+  BIC = bic,
+  AIC = aic,
+  .id = "Criterion"
+) |>
+  mutate(
+    Criterion = factor(
+      Criterion,
+      levels = c("BIC", "AIC")
+    )
+  ) |>
+  group_by(Criterion) |>
+  summarise(
+    n_simulations = n(),
+    exact_selection_probability = mean(exact_selection),
+    sensitivity = mean(sensitivity),
+    specificity = mean(specificity),
+    mean_selected_model_size = mean(n_selected),
+    mean_false_positives = mean(false_positives),
+    mean_false_negatives = mean(false_negatives),
+    .groups = "drop"
+  )
+
+print(criterion_comparison)
