@@ -14,7 +14,6 @@ covariate selection in Cormack--Jolly--Seber models.
 - `R/plotting.R`: diagnostic and coefficient-path plots.
 - `run_scenario_grid.R`: example factorial scenario grid.
 - `run_casestudy.R`: case study.
-- `manuscript/`: repo w/ draft.
 
 ## Run
 
