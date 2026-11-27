@@ -1,2 +1,0 @@
-"scenario_id","n_replicates","n_converged","convergence_rate","exact_selection_probability","exact_selection_mcse","mean_model_size","mean_true_positives","mean_false_positives","mean_false_negatives","sensitivity","specificity","median_elapsed_seconds"
-"S001",10,10,1,1,0,2,2,0,0,1,1,0.958999999998923
