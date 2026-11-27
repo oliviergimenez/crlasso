@@ -1,34 +1,20 @@
-# White stork case study:
+# White stork case study
 # adaptive-Lasso covariate selection in a CJS model
 
-rm(list = ls())
-
-# -------------------------------------------------------------------------
 # Load packages
-# -------------------------------------------------------------------------
-
 library(Rcpp)
 library(RcppArmadillo)
 
-# -------------------------------------------------------------------------
 # Compile and load the C++ likelihood
-# -------------------------------------------------------------------------
+sourceCpp(here("R","cjs_likelihood.cpp"))
 
-Rcpp::sourceCpp("code/simulations/R/cjs_likelihood.cpp")
-
-# -------------------------------------------------------------------------
 # Load functions
-# -------------------------------------------------------------------------
+source(here("R", "cjs_likelihood.R"))
+source(here("R", "fit_adaptive_lasso.R"))
+source(here("R", "plotting.R"))
 
-source("code/simulations/R/cjs_likelihood_rcpp.R")
-source("code/simulations/R/fit_adaptive_lasso_rcpp.R")
-source("code/simulations/R/plotting.R")
-
-# -------------------------------------------------------------------------
 # Load and prepare data
-# -------------------------------------------------------------------------
-
-load("code/case_study/dat/whitestork.RData")
+load(here("case_study","dat","whitestork.RData"))
 
 # The object `data` contains:
 # - one row per unique encounter history;
@@ -44,15 +30,6 @@ frequencies <- data[, ncol(data)]
 covariates <- as.matrix(cov)
 apply(covariates, 2, mean)
 apply(covariates, 2, sd)
-
-
-if (is.null(colnames(covariates))) {
-  colnames(covariates) <- paste0("station_", seq_len(ncol(covariates)))
-}
-
-# -------------------------------------------------------------------------
-# Correlation among climatic covariates
-# -------------------------------------------------------------------------
 
 # Compute Pearson correlation matrix
 cor_matrix <- cor(covariates, method = "pearson")
@@ -82,20 +59,11 @@ cor_pairs <- cor_pairs[
 
 head(cor_pairs, 10)
 
-
 # Survival design matrix: intercept and climatic covariates
 X_phi <- cbind(
   phi_intercept = 1,
   covariates
 )
-
-# Check compatibility between encounter histories and covariates
-if (nrow(X_phi) != ncol(encounter_histories) - 1L) {
-  stop(
-    "The number of rows in `cov` must equal the number of ",
-    "capture occasions minus one."
-  )
-}
 
 cjs_data <- prepare_cjs_data(
   histories = encounter_histories,
@@ -103,10 +71,7 @@ cjs_data <- prepare_cjs_data(
   frequencies = frequencies
 )
 
-# -------------------------------------------------------------------------
-# Fit the full, unpenalised model
-# -------------------------------------------------------------------------
-
+# Fit full unpenalised model
 full_fit <- fit_cjs(
   cjs_data = cjs_data,
   control = list(
@@ -114,13 +79,6 @@ full_fit <- fit_cjs(
     reltol = 1e-10
   )
 )
-
-if (full_fit$convergence != 0L) {
-  warning(
-    "The full model did not converge. optim() convergence code: ",
-    full_fit$convergence
-  )
-}
 
 full_model_results <- data.frame(
   parameter = names(full_fit$par),
@@ -130,31 +88,12 @@ full_model_results <- data.frame(
 
 print(full_model_results)
 
-# -------------------------------------------------------------------------
 # Fit the adaptive-Lasso path
-# -------------------------------------------------------------------------
-
-# The survival intercept and the detection intercept are not penalised.
+# The survival intercept and the detection intercept are not penalised
 unpenalised_parameters <- c(
   1L,
   ncol(X_phi) + 1L
 )
-
-# lambda_grid <- exp(
-#   seq(
-#     log(1e-3),
-#     log(2),
-#     length.out = 100
-#   )
-# )
-
-# lambda_grid <- exp(
-#   seq(
-#     log(1e-3),
-#     log(100),
-#     length.out = 150
-#   )
-# )
 
 lambda_grid <- exp(
   seq(
@@ -163,18 +102,6 @@ lambda_grid <- exp(
     length.out = 120
   )
 )
-
-# lasso_path <- fit_adaptive_lasso(
-#   cjs_data = cjs_data,
-#   lambda = lambda_grid,
-#   gamma = 1,
-#   unpenalised = unpenalised_parameters,
-#   zero_tolerance = 1e-4,
-#   control = list(
-#     maxit = 5000,
-#     reltol = 1e-10
-#   )
-# )
 
 lasso_path <- fit_adaptive_lasso(
   cjs_data = cjs_data,
@@ -191,29 +118,7 @@ lasso_path <- fit_adaptive_lasso(
 # Optimisation diagnostics
 print(table(lasso_path$convergence))
 
-cat(
-  "Null-model restarts:",
-  sum(lasso_path$null_restart),
-  "\n"
-)
-
-cat(
-  "Non-monotonic steps:",
-  sum(diff(lasso_path$penalised_objective) < -1e-4),
-  "\n"
-)
-
-# Genuine optimisation failures
-n_fail <- sum(!lasso_path$convergence %in% c(0L, 99L))
-
-if (n_fail > 0L) {
-  warning(n_fail, " optimisation failures along the path.")
-}
-
-
-# -------------------------------------------------------------------------
 # Select lambda using BIC
-# -------------------------------------------------------------------------
 
 selected_fit <- select_lasso_fit(
   path_fit = lasso_path,
@@ -228,9 +133,7 @@ cat(
   "\n"
 )
 
-# -------------------------------------------------------------------------
 # Display selected coefficients
-# -------------------------------------------------------------------------
 
 coefficient_table <- data.frame(
   parameter = names(selected_fit$coefficients),
@@ -274,16 +177,14 @@ diagnostics <- data.frame(
 
 print(diagnostics)
 
-# -------------------------------------------------------------------------
 # Plots
-# -------------------------------------------------------------------------
 
 plot_lasso_criterion(
   path_fit = lasso_path,
   criterion = "BIC"
 )
 
-ggsave(filename = "bic_stork.png", dpi = 600)
+ggsave(filename = here("case_study","bic_stork.png"), dpi = 600)
 
 plot_lasso_path(
   path_fit = lasso_path,
@@ -292,11 +193,9 @@ plot_lasso_path(
   legend_position = "right"
 )
 
-ggsave(filename = "path_stork.png", dpi = 600)
+ggsave(filename = here("case_study","path_stork.png"), dpi = 600)
 
-# -------------------------------------------------------------------------
 # Save results
-# -------------------------------------------------------------------------
 
 saveRDS(
   list(
@@ -307,12 +206,12 @@ saveRDS(
     coefficient_table = coefficient_table,
     diagnostics = diagnostics
   ),
-  file = "whitestork_lasso_results.rds"
+  file = here("case_study","whitestork_lasso_results.rds")
 )
 
-utils::write.csv(
+write.csv(
   coefficient_table,
-  file = "whitestork_lasso_coefficients.csv",
+  file = here("case_study","whitestork_lasso_coefficients.csv"),
   row.names = FALSE
 )
 

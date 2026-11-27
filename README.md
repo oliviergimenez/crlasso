@@ -41,3 +41,4 @@ The `R/` directory contains the functions used by both the simulation study and 
 - `fit_adaptive_lasso.R`: adaptive weights, regularisation path, unpenalised refitting and model selection.
 - `run_simulations.R`: simulation engine for individual replicates and complete simulation studies.
 - `summarise_simulations.R`: replicate-level and scenario-level summaries.
+- `plotting.R`: visualisation of regularisation paths.
