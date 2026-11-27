@@ -1,8 +1,8 @@
-# Functions for simulating Cormack--Jolly--Seber capture histories.
+# Functions for simulating Cormack-Jolly-Seber (CJS) capture histories
 
 #' Simulate CJS capture histories
 #'
-#' Individuals are released on specified occasions and followed until death or
+#' Individuals are released on occasions and followed until death or
 #' the final capture occasion. Survival is defined for intervals and detection
 #' for occasions after first release.
 #'
@@ -60,12 +60,12 @@ simulate_cjs_histories <- function(phi, p, marked) {
 }
 
 
-#' Simulate one CJS regression dataset
+#' Simulate one CJS dataset
 #'
 #' @param n_occasions Number of capture occasions.
-#' @param marked Number newly marked per occasion, either a scalar or vector.
+#' @param marked Number newly marked per occasion.
 #' @param beta_phi Regression coefficients for survival, including intercept.
-#' @param beta_p Intercept-only detection coefficient on the logit scale.
+#' @param beta_p Intercept-only detection on the logit scale.
 #' @param covariate_correlation Pairwise correlation used when simulating more
 #'   than one temporal covariate.
 #' @param seed Optional random seed.

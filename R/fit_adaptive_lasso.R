@@ -1,4 +1,4 @@
-# Adaptive-Lasso fitting for the CJS likelihood.
+# Adaptive-Lasso fitting for CJS likelihood
 
 #' Compute adaptive-Lasso weights
 #'
@@ -90,7 +90,6 @@ fit_adaptive_lasso <- function(
   # Diagnostics
   null_restart <- rep(FALSE, length(lambda))
   
-  
   current <- full_fit$par
   
   for (j in seq_along(lambda)) {
@@ -167,10 +166,7 @@ fit_adaptive_lasso <- function(
     log(sample_size) * n_effective
   
   
-  # ----------------------------------------------------------------------
   # Post-Lasso refitting
-  # ----------------------------------------------------------------------
-  
   refit_nll <- rep(NA_real_, length(lambda))
   refit_AIC <- rep(NA_real_, length(lambda))
   refit_BIC <- rep(NA_real_, length(lambda))
@@ -250,7 +246,6 @@ fit_adaptive_lasso <- function(
   
   out
 }
-
 
 #' Extract the model selected along a Lasso path
 select_lasso_fit <- function(

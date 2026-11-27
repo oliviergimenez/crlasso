@@ -1,7 +1,7 @@
 # Likelihood functions for an intercept-only detection CJS model.
 # The computationally intensive forward algorithm is evaluated in C++.
 
-#' Compile the Rcpp CJS likelihood
+#' Compile Rcpp CJS likelihood
 #'
 #' Run this once at the beginning of an R session. On a cluster, compile on a
 #' login node if required by local policy, or let the batch job compile once
@@ -72,8 +72,7 @@ prepare_cjs_data <- function(histories, X_phi, frequencies = NULL) {
   )
 }
 
-
-# Pure-R implementation retained for validation and benchmarking.
+# R implementation retained for validation and benchmarking.
 cjs_nll_R <- function(par, cjs_data) {
   n_phi <- cjs_data$n_phi_parameters
   if (length(par) != n_phi + 1L) {
@@ -118,11 +117,7 @@ cjs_nll_R <- function(par, cjs_data) {
   -total_log_likelihood
 }
 
-
 #' Negative conditional log-likelihood for a CJS model
-#'
-#' This wrapper keeps the same interface as the original R function, so the
-#' adaptive-Lasso code does not need to change.
 cjs_nll <- function(par, cjs_data) {
   if (!exists("cjs_nll_rcpp", mode = "function", inherits = TRUE)) {
     stop(
@@ -140,7 +135,6 @@ cjs_nll <- function(par, cjs_data) {
   )
 }
 
-
 #' Penalised CJS objective
 cjs_penalised_nll <- function(par, cjs_data, penalty_factor) {
   if (length(penalty_factor) != length(par)) {
@@ -153,7 +147,6 @@ cjs_penalised_nll <- function(par, cjs_data, penalty_factor) {
 
 
 #' Fit an unpenalised CJS model
-
 fit_cjs <- function(
     cjs_data,
     initial = NULL,

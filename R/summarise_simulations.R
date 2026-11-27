@@ -1,4 +1,4 @@
-# Functions to summarise adaptive-Lasso simulation results.
+# Functions to summarise adaptive-Lasso simulation results
 
 #' Identify selected covariates from a coefficient vector
 selected_covariates <- function(
@@ -8,7 +8,6 @@ selected_covariates <- function(
   coefficients <- coefficients[covariate_names]
   names(coefficients)[abs(coefficients) > zero_tolerance]
 }
-
 
 #' Combine replicate-level simulation outputs
 bind_simulation_results <- function(results) {
@@ -25,7 +24,6 @@ bind_simulation_results <- function(results) {
   rownames(out) <- NULL
   out
 }
-
 
 #' Summarise variable-selection performance by scenario
 #'
@@ -122,7 +120,6 @@ summarise_covariate_selection <- function(
   rownames(out) <- NULL
   out
 }
-
 
 #' Monte Carlo standard error for a probability estimate
 mcse_probability <- function(probability, n) {

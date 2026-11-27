@@ -1,18 +1,19 @@
-# factorial simulation design
+# run simulations
 
 options(error = NULL)
 
+library(here)
 library(Rcpp)
 library(RcppArmadillo)
 
-source("code/simulations/R/simulate_cjs.R")
-source("code/simulations/R/cjs_likelihood.R")
-source("code/simulations/R/fit_adaptive_lasso.R")
-source("code/simulations/R/summarise_simulations.R")
-source("code/simulations/R/run_simulations.R")
+source(here("R", "simulate_cjs.R"))
+source(here("R", "cjs_likelihood.R"))
+source(here("R", "fit_adaptive_lasso.R"))
+source(here("R", "summarise_simulations.R"))
+source(here("R", "run_simulations.R"))
+load_cjs_rcpp(here("R", "cjs_likelihood.cpp"))
 
-load_cjs_rcpp("code/simulations/R/cjs_likelihood.cpp")
-
+# Simulation design
 scenarios <- make_simulation_scenarios(
   n_occasions  = c(20),
   marked        = c(20, 50),
@@ -24,9 +25,10 @@ scenarios <- make_simulation_scenarios(
   correlation   = c(0, 0.5, 0.8)
 )
 
+# Run simulations
 results <- run_simulation_study(
   scenarios = scenarios,
-  n_replicates = 100,
+  n_replicates = 10,
   seed = 20260720,
   lambda_min = 1e-3,
   lambda_max = 1e4,
@@ -34,12 +36,6 @@ results <- run_simulation_study(
   zero_tolerance = 1e-3,
   save_file = "scenario_grid_partial.rds"
 )
-
-utils::write.csv(results, "scenario_grid_results.csv", row.names = FALSE)
-summary_results <- summarise_simulation_study(results)
-utils::write.csv(summary_results, "scenario_grid_summary.csv", row.names = FALSE)
-covariate_summary <- summarise_covariate_selection(results)
-utils::write.csv(covariate_summary, "simulation_covariate_selection.csv", row.names = FALSE)
 
 # Check completeness
 nrow(results)
@@ -82,9 +78,14 @@ performance_by_factor <- lapply(factors, function(f) {
       .groups = "drop"
     )
 })
-
 names(performance_by_factor) <- factors
-
 performance_by_factor
+
+# Save results
+write.csv(results, here("simulations", "scenario_grid_results.csv"), row.names = FALSE)
+summary_results <- summarise_simulation_study(results)
+write.csv(summary_results, here("simulations", "scenario_grid_summary.csv"), row.names = FALSE)
+covariate_summary <- summarise_covariate_selection(results)
+write.csv(covariate_summary, here("simulations", "simulation_covariate_selection.csv"), row.names = FALSE)
 
 

@@ -1,44 +1,43 @@
-# Adaptive Lasso for CJS models
+# Adaptive Lasso for capture-recapture models
 
-This folder contains the simulations and case-study code for adaptive-Lasso 
-covariate selection in Cormack--Jolly--Seber models.
+This repository contains the `R` code used to implement and evaluate adaptive-Lasso covariate selection in Cormack-Jolly-Seber (CJS) capture-recapture models. It includes a simulation study assessing covariate-selection performance and a case study investigating the relationship between environmental covariates and survival in white storks (*Ciconia ciconia*).
 
-## Files
+## Repository structure
 
-- `R/simulate_cjs.R`: simulation of capture histories and temporal covariates.
-- `R/cjs_likelihood.R`: conditional CJS likelihood and unpenalised fitting.
-- `R/fit_adaptive_lasso.R`: adaptive weights, regularisation path and selection.
-- `R/fit_candidate_models.R`: exhaustive candidate-model fitting by AIC/BIC.
-- `R/summarise_simulations.R`: replicate-level and scenario-level summaries.
-- `R/run_simulations.R`: one-replicate and complete simulation-study engine.
-- `R/plotting.R`: diagnostic and coefficient-path plots.
-- `run_scenario_grid.R`: example factorial scenario grid.
-- `run_casestudy.R`: case study.
+The repository is organised into three main directories:
 
-## Run
+- `R/`: core functions for data simulation, likelihood evaluation, adaptive-Lasso fitting, model selection and visualisation.
+- `simulations/`: scripts to run the simulation study and analyse its results.
+- `case_study/`: code and data for the white stork case study.
 
-From the project directory:
+## Getting started
 
-```r
-source("run_example.R")
-```
+### Simulation study
 
-The current implementation uses only base R and `stats`.
+To reproduce the simulation study, run:
 
-## Simulation workflow
+`simulations/run_simulation_study.R`
 
-Run the original scenario with:
+This script defines the simulation scenarios, generates the capture-recapture datasets, fits the models and saves the results.
 
-```r
-source("run_simulations.R")
-```
+To summarise and visualise the simulation results, run:
 
-The simulation output has one row per scenario, replicate and method. The four
-default methods are exhaustive AIC, exhaustive BIC, adaptive-Lasso AIC and
-adaptive-Lasso BIC. Raw output, summaries and marginal covariate-selection
-probabilities are saved separately.
+`simulations/analyse_simulation_outputs.R`
 
-`run_simulation_study()` generates and stores a separate random seed for every
-replicate, records convergence and timing, and can save an incremental RDS file
-after every replicate. Failed replicates are recorded rather than silently
-discarded.
+### Case study
+
+To reproduce the white stork analysis, run:
+
+`case_study/run_casestudy.R`
+
+This script loads the capture-recapture and environmental data, fits the adaptive Lasso, selects the model using BIC and produces the corresponding results and figures.
+
+## Core R functions
+
+The `R/` directory contains the functions used by both the simulation study and the case study:
+
+- `simulate_cjs.R`: simulation of capture histories and temporal covariates.
+- `cjs_likelihood.R`: CJS likelihood and unpenalised fitting.
+- `fit_adaptive_lasso.R`: adaptive weights, regularisation path, unpenalised refitting and model selection.
+- `run_simulations.R`: simulation engine for individual replicates and complete simulation studies.
+- `summarise_simulations.R`: replicate-level and scenario-level summaries.

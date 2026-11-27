@@ -5,7 +5,7 @@
 
 using namespace Rcpp;
 
-// Stable inverse-logit function.
+// Inverse-logit function
 inline double inv_logit_cpp(const double x) {
   if (x >= 0.0) {
     const double z = std::exp(-x);
@@ -21,12 +21,12 @@ inline double inv_logit_cpp(const double x) {
 //' likelihood is conditional on first capture and evaluated with a two-state
 //' (alive/dead) forward recursion.
 //'
-//' @param par Survival regression coefficients followed by logit(p).
-//' @param histories Binary encounter-history matrix, individuals in rows.
-//' @param X_phi Survival design matrix, one row per interval.
-//' @param first_capture First-capture occasions, using R's one-based indexing.
-//' @param frequencies Positive frequencies for encounter histories.
-//' @return The negative conditional log-likelihood.
+//' @param par Survival regression coefficients followed by logit(p)
+//' @param histories Binary encounter-history matrix, individuals in rows
+//' @param X_phi Survival design matrix, one row per interval
+//' @param first_capture First-capture occasions
+//' @param frequencies Frequencies for encounter histories
+//' @return The negative log-likelihood
 // [[Rcpp::export]]
 double cjs_nll_rcpp(
     const NumericVector& par,
@@ -50,7 +50,7 @@ double cjs_nll_rcpp(
     stop("Data vectors have incompatible lengths.");
   }
 
-  // Compute interval-specific survival probabilities once per likelihood call.
+  // Compute interval-specific survival probabilities once per likelihood call
   NumericVector phi(n_intervals);
   for (int t = 0; t < n_intervals; ++t) {
     double eta = 0.0;
@@ -73,30 +73,30 @@ double cjs_nll_rcpp(
       continue;
     }
 
-    // Conditional on first capture, the individual is alive.
+    // Conditional on first capture, the individual is alive
     double alive = 1.0;
     double dead = 0.0;
     double log_scale = 0.0;
 
     for (int interval = first; interval < n_intervals; ++interval) {
-      // State transition from occasion interval to interval + 1.
+      // State transition
       const double alive_previous = alive;
       alive = alive_previous * phi[interval];
       dead = dead + alive_previous * (1.0 - phi[interval]);
 
-      // Observation at the next capture occasion.
+      // Observation
       const int observation = histories(i, interval + 1);
       if (observation == 1) {
         alive *= p;
         dead = 0.0;
       } else if (observation == 0) {
         alive *= (1.0 - p);
-        // A dead individual is necessarily not detected.
+        // A dead individual is necessarily not detected
       } else {
         stop("`histories` must contain only zeros and ones.");
       }
 
-      // Scale the forward probabilities to avoid numerical underflow.
+      // Scale the forward probabilities to avoid numerical underflow
       const double scale = alive + dead;
       if (!R_finite(scale) || scale <= 0.0) {
         return R_PosInf;
